@@ -8,6 +8,7 @@ import sys
 import random
 from subprocess import call
 
+import requests
 from PIL import Image, ImageDraw, ImageFont
 
 WALLPAPER_DIR = '/home/wynand/GoogleDrive/01_Personal/01_Personal/05_Images/Wallpapers'
@@ -16,6 +17,17 @@ QUOTE_FILE = sys.path[0] + '/quotes.txt'
 # get a font
 FNT = ImageFont.truetype('/usr/share/fonts/TTF/DroidSerif-Regular.ttf', 50)
 
+def download_bing_wallpaper():
+    url = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
+    r = requests.get(url)
+    if r.status_code == 200:
+        # TODO: force the resolution to be 1920x1080 or whatever you want by changing the returned filename?
+        wallpaper_rel_path= r.json()['images'][0]['url']
+        r = requests.get(f'https://www.bing.com{wallpaper_rel_path}')
+        if r.status_code == 200:
+            with open('bing.jpg', 'wb') as f:
+                f.write(r.content)
+    
 def change_wallpaper():
     '''Add quote selected from text file over images in a folder'''
 
