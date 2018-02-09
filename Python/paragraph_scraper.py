@@ -7,7 +7,7 @@ import sys
 
 from bs4 import BeautifulSoup
 
-## Collect command-line arguements from input
+## Collect command-line arguments from input
 def getopts(argv):
     opts = {}  # Empty dictionary to store key-value pairs.
     while argv:  # While there are arguments left to parse...
