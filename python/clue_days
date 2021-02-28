@@ -12,9 +12,11 @@ current_year = int(datetime.datetime.strftime(datetime.datetime.now(), "%Y"))
 this_month = int(datetime.datetime.strftime(datetime.datetime.now(), "%m"))
 next_month = this_month + 1
 days_next_month = (datetime.date(current_year, next_month, 1) - datetime.date(current_year, this_month, 1)).days
-five_random_days = []
-while len(five_random_days) < 5:
-    five_random_days.append(random.choice(range(1, days_next_month)))
+weights = [0.5, 0.1, 0.2, 0.1, 0.1] * (days_next_month//5)
+while len(weights)+1 != days_next_month:
+    weights.append(random.uniform(0, 1))
+five_random_days = random.choices(range(1, days_next_month), weights=(weights), k=5)
+five_random_days.sort()
 
 # Set up deck of cards
 card_numbers = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
