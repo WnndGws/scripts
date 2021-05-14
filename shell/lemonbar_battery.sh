@@ -11,7 +11,7 @@ print_state() {
     if [ $BAT_STATE = "Full" ]; then
         TIME=$BAT_STATE
     else
-        TIME=$(acpi)
+        TIME=$(acpi | sed -n 1p)
         TIME=${TIME%:*}
         TIME=${TIME##* }
     fi
