@@ -5,16 +5,18 @@
 FONT_COLOUR="#eee8d5" # white
 
 print_state() {
-    BAT_PERC=$(($(paste /sys/class/power_supply/BAT0/capacity)))
-    BAT_STATE=$(paste /sys/class/power_supply/BAT0/status)
+    BAT_STRING=$(acpi | sed -n 1p)
+    BAT_PERC=$(echo $BAT_STRING | grep --perl-regexp --only-matching '[0-9]+(?=%)')
+    BAT_STATE=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging')
+    TIME=$(echo $BAT_STRING | grep --extended-regexp --only-matching '[0-9]{2}:[0-9]{2}')
 
-    if [ $BAT_STATE = "Full" ]; then
-        TIME=$BAT_STATE
-    else
-        TIME=$(acpi | sed -n 1p)
-        TIME=${TIME%:*}
-        TIME=${TIME##* }
-    fi
+    #if [ $BAT_STATE = "Full" ]; then
+        #TIME=$BAT_STATE
+    #else
+        #TIME=$(acpi | sed -n 1p)
+        #TIME=${TIME%:*}
+        #TIME=${TIME##* }
+    #fi
 
     if [ "$BAT_STATE" = "Charging" ]; then
         ICON="" # fontawesome 'plug' (f1e6)
@@ -40,10 +42,11 @@ print_state() {
 }
 
 check_state_change() {
+    BAT_STRING=$(acpi | sed -n 1p)
     unset changed
-    BAT_STATE_OLD=$(paste /sys/class/power_supply/BAT0/status)
+    BAT_STATE_OLD=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging')
     sleep 1
-    BAT_STATE_NEW=$(paste /sys/class/power_supply/BAT0/status)
+    BAT_STATE_NEW=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging')
 
     if [[ "$BAT_STATE_OLD" != "$BAT_STATE_NEW" ]]; then
         changed=true
