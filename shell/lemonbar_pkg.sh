@@ -14,7 +14,8 @@ while true; do
     if [ -n "$pac" ]; then
 
         pac=$(echo $pac | wc -l)
-        aur=$(pikaur -Qqu 2> /dev/null | rg --invert-match --count "$ignore_list")
+        aur=$(pikaur -Qqu | wc -l)
+        #aur=$(pikaur -Qqu 2> /dev/null | rg --invert-match --count "$ignore_list")
         # Need to minus 1 since pikaur outputs a non-blank blank line
         #aur=$(awk -v a="$aur" 'BEGIN { printf a-1 }')
         aur=$(awk -v a="$aur" -v p="$pac" 'BEGIN { printf a-p }')
