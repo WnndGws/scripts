@@ -3,13 +3,15 @@
 
 # Need to update or it wont know there are new packages
 
-ignore_list="(^$(rg "^Ignore.*" /etc/pacman.conf | sed -e 's/^.*= //' -e 's/ /$)|(^/g')$)"
+#ignore_list="(^$(rg "^Ignore.*" /etc/pacman.conf | sed -e 's/^.*= //' -e 's/ /$)|(^/g')$)"
 
 while true; do
     sudo pikaur -Sy > /dev/null 2>&1
 
-    pac=$(pacman -Qqu | rg --invert-match --count "$ignore_list")
-    if [ -n $pac ]; then
+    unset $pac
+    #pac=$(pacman -Qqu | rg --invert-match --count "$ignore_list")
+    pac=$(pacman -Qqu)
+    if [ -n "$pac" ]; then
 
         aur=$(pikaur -Qqu 2> /dev/null | rg --invert-match --count "$ignore_list")
         # Need to minus 1 since pikaur outputs a non-blank blank line
