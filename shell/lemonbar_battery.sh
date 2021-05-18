@@ -7,18 +7,22 @@ FONT_COLOUR="#eee8d5" # white
 print_state() {
     BAT_STRING=$(acpi | sed -n 1p)
     BAT_PERC=$(echo $BAT_STRING | grep --perl-regexp --only-matching '[0-9]+(?=%)')
-    BAT_STATE=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging')
+    BAT_STATE=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging|Unknown')
     TIME=$(echo $BAT_STRING | grep --extended-regexp --only-matching '[0-9]{2}:[0-9]{2}')
 
-    #if [ $BAT_STATE = "Full" ]; then
-        #TIME=$BAT_STATE
+    if [ $BAT_STATE = "Unknown" ]; then
+        TIME="Charged"
+        BAT_PERC=100
     #else
         #TIME=$(acpi | sed -n 1p)
         #TIME=${TIME%:*}
         #TIME=${TIME##* }
-    #fi
+    fi
 
     if [ "$BAT_STATE" = "Charging" ]; then
+        ICON="" # fontawesome 'plug' (f1e6)
+        UNDERLINE_COLOUR="#99c76c" # green
+    elif [ "$TIME" = "Charged" ]; then
         ICON="" # fontawesome 'plug' (f1e6)
         UNDERLINE_COLOUR="#99c76c" # green
     elif [ "$BAT_PERC" -gt 95 ]; then
@@ -42,10 +46,11 @@ print_state() {
 }
 
 check_state_change() {
-    BAT_STRING=$(acpi | sed -n 1p)
     unset changed
+    BAT_STRING=$(acpi | sed -n 1p)
     BAT_STATE_OLD=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging')
     sleep 1
+    BAT_STRING=$(acpi | sed -n 1p)
     BAT_STATE_NEW=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging')
 
     if [[ "$BAT_STATE_OLD" != "$BAT_STATE_NEW" ]]; then
