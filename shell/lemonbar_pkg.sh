@@ -1,5 +1,6 @@
-#!/usr/bin/env sh
+#!/usr/bin/env zsh
 ## Checks how many packages need updating
+## NOTE: USES BASHISMS
 
 # Need to update or it wont know there are new packages
 
@@ -8,7 +9,6 @@
 while true; do
     sudo pikaur -Sy > /dev/null 2>&1
 
-    unset $pac
     #pac=$(pacman -Qqu | rg --invert-match --count "$ignore_list")
     pac=$(pacman -Qqu)
     if [ -n "$pac" ]; then
