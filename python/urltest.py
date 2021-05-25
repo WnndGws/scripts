@@ -14,8 +14,8 @@ data = data[:-1]
 
 for url in data:
     try:
-        requests.get(url, headers={"User-Agent": "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0"}, timeout=10)
-        if not r.status_code() == 200:
-            print(f"{url} failed with code {r.status_code()}")
+        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0"}, timeout=10)
+        if not r.status_code == 200:
+            print(f"{url} FAILED with code {r.status_code}")
     except:
         print(f"{url} failed")
