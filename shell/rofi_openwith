@@ -37,7 +37,7 @@ echo "$link_handlers"
 case "$link_handlers" in
     umpv) "$HOME/git/scripts/python/umpv" "$1" & disown ;;
     umpv_audio) "$HOME/git/scripts/python/umpv_audio" "$1" & disown ;;
-    mpv) mpv --pause --ytdl-format="best[height<=720]" --quiet "$1" 2>/dev/null & disown ;;
+    mpv) mpv --pause --quiet "$1" 2>/dev/null & disown ;;
     firefox) firefox "$1";;
     feh) feh --scale-down --recursive "$1" --title "%S %n";;
     paragraph) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && alacritty --hold -e bat /tmp/para.txt ;;
