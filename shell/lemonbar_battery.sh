@@ -7,7 +7,7 @@ FONT_COLOUR="#eee8d5" # white
 print_state() {
     BAT_STRING=$(acpi | sed -n 1p)
     BAT_PERC=$(echo $BAT_STRING | grep --perl-regexp --only-matching '[0-9]+(?=%)')
-    BAT_STATE=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging|Unknown')
+    BAT_STATE=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis)?[Cc]harging|Unknown|Full')
     TIME=$(echo $BAT_STRING | grep --extended-regexp --only-matching '[0-9]{2}:[0-9]{2}')
 
     if [ $BAT_STATE = "Unknown" ]; then
@@ -20,6 +20,9 @@ print_state() {
     fi
 
     if [ "$BAT_STATE" = "Charging" ]; then
+        ICON="" # fontawesome 'plug' (f1e6)
+        UNDERLINE_COLOUR="#99c76c" # green
+    elif [ "$BAT_STATE" = "Full" ]; then
         ICON="" # fontawesome 'plug' (f1e6)
         UNDERLINE_COLOUR="#99c76c" # green
     elif [ "$TIME" = "Charged" ]; then
