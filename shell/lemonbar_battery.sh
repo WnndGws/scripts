@@ -25,6 +25,7 @@ print_state() {
     elif [ "$BAT_STATE" = "Full" ]; then
         ICON="" # fontawesome 'plug' (f1e6)
         UNDERLINE_COLOUR="#99c76c" # green
+        TIME="Charged"
     elif [ "$TIME" = "Charged" ]; then
         ICON="" # fontawesome 'plug' (f1e6)
         UNDERLINE_COLOUR="#99c76c" # green
