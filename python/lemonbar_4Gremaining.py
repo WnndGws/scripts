@@ -6,6 +6,7 @@ Log into aldi to see how much data I have left
 #standard imports
 from configparser import ConfigParser
 import re
+import sys
 from time import sleep
 
 #3rd party imports
@@ -42,9 +43,13 @@ driver.quit()
 with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
     start_rx = int(f.readline())
 
+fd = sys.stdout
+
 while True:
     with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
         now_rx = int(f.readline())
     total_rx = humanize.naturalsize(now_rx - start_rx, "%d")
-    print(f'D{total_rx}/{data_left[0]}')
+    fd.write(f'D{total_rx}/{data_left[0]}')
+    fd.write("\n")
+    fd.flush()
     sleep(30)
