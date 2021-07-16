@@ -5,6 +5,7 @@ Log into aldi to see how much data I have left
 
 #standard imports
 from configparser import ConfigParser
+import os
 import re
 import sys
 from time import sleep
