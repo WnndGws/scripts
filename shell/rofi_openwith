@@ -2,53 +2,60 @@
 ## Use zsh so can use bash-isms
 ## Feed this script a link and it will give rofi a list of link_handlers to open with
 
-# The URL will be shown visually in 30 characters or less.
-if [[ "${#1}" -gt 30 ]];
-then
-    visual="${1:0:20}"..."${1: -7}"
-else
-    visual="$1"
-fi
-echo $visual
+url="$1"
+title="$2"
+description="$3"
+feed_title="$4"
 
-if [ -z "$SSH_TTY" ]; then
-    link_handlers=$(printf "umpv\n\
+if [[ "$url" == *"i.redd"* || "$url" == *"imgur"* ]]; then
+  wget --output-document /tmp/feh "$url"
+  convert /tmp/feh -background black -fill white -font Source-Code-Pro-Bold -pointsize 35 label:"$title" -gravity Center -append /tmp/feh_title
+  feh --scale-down --recursive /tmp/feh_title && /bin/rm /tmp/feh /tmp/feh_title
+  disown
+elif [[ "$url" == *"v.red"* || "$url" == *"streama"* ]]; then
+  mpv "$url"
+  disown
+else
+  # The URL will be shown visually in 30 characters or less.
+  if [[ "${#url}" -gt 30 ]];
+  then
+      visual="${url:0:20}"..."${url: -7}"
+  else
+      visual="$url"
+  fi
+  echo $visual
+
+  # List of link handlers to open files
+  link_handlers=$(printf "\
+umpv\n\
 umpv_audio\n\
 mpv\n\
+bookmark\n\
 firefox\n\
 feh\n\
 paragraph\n\
 summary\n\
-summary_nc\n\
 ytdl\n\
 speedread\n\
-speedread_summary\n\
-linkfile"\
-| rofi -matching fuzzy -dmenu -i -mesg "How should I open '$visual'?" -select)
-else
-    link_handlers=$(printf "linkfile\n\
-paragraph_file\n\
-summary_file"\
-| smenu -line_mode -search_method fuzzy -message "How should I open '$visual'?")
+speedread_summary"\
+| rofi -matching fuzzy -dmenu -i -mesg "How should I open '$visual'?" -select
+)
+
+  echo "$link_handlers"
+
+  case "$link_handlers" in
+    umpv) "$HOME/git/scripts/python/umpv" "$url" & disown ;;
+    umpv_audio) "$HOME/git/scripts/python/umpv_audio" "$url" & disown ;;
+    mpv) mpv "$url" 2>/dev/null & disown ;;
+    bookmark) buku --add "$url" toread,"$feed_title" --title "$title" & disown ;;
+    firefox) firefox "$url" ;;
+    feh) wget --output-document /tmp/feh "$url" && convert /tmp/feh -background black -fill white -font Source-Code-Pro-Bold -pointsize 35 label:"$title" -gravity Center -append /tmp/feh_title && feh --scale-down --recursive /tmp/feh_title && /bin/rm /tmp/feh /tmp/feh_title ;;
+    paragraph) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$url" && alacritty --hold -e bat /tmp/para.txt ;;
+    summary) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$url" && "$HOME/git/scripts/python/paragraphscraper/article_summarise_cosine.py" --file-name /tmp/para.txt --context > /tmp/summary.txt && alacritty --hold -e bat /tmp/summary.txt ;;
+    ytdl) youtube-dl "$url" > /dev/null 2>&1 & ;;
+    speedread) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$url" && alacrity --hold -e /usr/bin/speedread -w 350 /tmp/para.txt ;;
+    speedread_summary) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$url" && "$HOME/git/scripts/python/paragraphscraper/article_summarise_cosine.py" --file-name /tmp/para.txt --context > /tmp_summary.txt && alacritty --hold -e /usr/bin/speedread -w 350 /tmp/summary.txt ;;
+  esac
 fi
 
-echo "$link_handlers"
-
-case "$link_handlers" in
-    umpv) "$HOME/git/scripts/python/umpv" "$1" & disown ;;
-    umpv_audio) "$HOME/git/scripts/python/umpv_audio" "$1" & disown ;;
-    mpv) mpv --pause --quiet "$1" 2>/dev/null & disown ;;
-    firefox) firefox "$1";;
-    feh) feh --scale-down --recursive "$1" --title "%S %n";;
-    paragraph) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && alacritty --hold -e bat /tmp/para.txt ;;
-    summary) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && "$HOME/git/scripts/python/paragraphscraper/article_summarise_cosine.py" --file-name /tmp/para.txt --context > /tmp/summary.txt && alacritty --hold -e bat /tmp/summary.txt ;;
-    summary_nc) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && "$HOME/git/scripts/python/paragraphscraper/article_summarise_cosine.py" --file-name /tmp/para.txt > /tmp/summary.txt && alacritty --hold -e bat /tmp/summary.txt ;;
-    ytdl) youtube-dl "$1" > /dev/null 2>&1 & ;;
-    speedread) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && alacritty --hold -e /usr/bin/speedread -w 350 /tmp/para.txt ;;
-    #speedread_summary) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && "$HOME/git/scripts/python/paragraphscraper/article_summarise_cosine.py" --file-name /tmp/para.txt --context > /tmp/summary.txt && bspc rule -a \* -o state=floating center=true && alacritty --hold -e /usr/bin/speedread -w 350 /tmp/summary.txt ;;
-    speedread_summary) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && "$HOME/git/scripts/python/paragraphscraper/article_summarise_cosine.py" --file-name /tmp/para.txt --context > /tmp/summary.txt && alacritty --hold -e /usr/bin/speedread -w 350 /tmp/summary.txt ;;
-    linkfile) touch /tmp/linkfile.txt && echo "$1" >> /tmp/linkfile.txt ;;
-    paragraph_file) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" ;;
-    summary_file) /bin/rm /tmp/para.txt; "$HOME/git/scripts/python/paragraphscraper/paragraph_scraper.py" --url "$1" && "$HOME/git/scripts/python/paragraphscraper/article_summarise_cosine.py" --file-name /tmp/para.txt --context > /tmp/summary.txt ;;
-    *) "$link_handlers" "$1";;
-esac
+exit 0

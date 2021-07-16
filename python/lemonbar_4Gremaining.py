@@ -43,6 +43,9 @@ driver.quit()
 with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
     start_rx = int(f.readline())
 
+with open("$XDG_CACHE_HOME/lemonbar/wlan0_start", "w") as f:
+    f.write(start_rx)
+
 fd = sys.stdout
 
 while True:
