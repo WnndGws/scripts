@@ -50,10 +50,15 @@ with open("/home/wynand/.cache/lemonbar/wlan0_start", "w") as f:
 fd = sys.stdout
 
 while True:
-    with open("/home/wynand/.cache/lemonbar/wlan0_start", "r") as f:
-        start_rx = int(f.readline())
     with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
         now_rx = int(f.readline())
+    with open("/home/wynand/.cache/lemonbar/wlan0_start", "r") as f:
+        start_rx = int(f.readline())
+    if start_rx > now_rx:
+        start_rx = start_rx - (2*(abs(now_rx - start_rx)))
+        with open("/home/wynand/.cache/lemonbar/wlan0_start", "w") as f:
+            f.write(str(start_rx))
+
     total_rx = humanize.naturalsize(now_rx - start_rx, "%d")
     fd.write(f'D{total_rx}/{data_left[0]}')
     fd.write("\n")
