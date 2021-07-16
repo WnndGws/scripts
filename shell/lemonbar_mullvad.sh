@@ -7,7 +7,17 @@ while true; do
         "You are connected to Mullvad"*) connected="YES" ;;
         *) connected="NO" ;;
     esac
-
     echo "A$connected"
-    sleep 3600
+
+    runtime="10 minute"
+    endtime=$(date -ud "$runtime" +%s)
+    while [ "$(date -u +%s)" -le "$endtime" ]; do
+        number_connections=$(ip add | rg mull | wc -l)
+        case $number_connections in
+            2) connected="YES" ;;
+            0) connected="NO" ;;
+        esac
+        echo "A$connected"
+        sleep 5
+    done
 done
