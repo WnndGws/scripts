@@ -23,7 +23,7 @@ url = "https://my.aldimobile.com.au/"
 
 ff_options = webdriver.FirefoxOptions()
 ff_options.headless = True
-driver = webdriver.Firefox(executable_path="/usr/bin/geckodriver", options=ff_options)
+driver = webdriver.Firefox(executable_path="/usr/bin/geckodriver", options=ff_options, service_log_path=os.path.devnull)
 driver.implicitly_wait(0.4)
 driver.get(url)
 driver.find_element_by_id("login_user_login").send_keys(username)
@@ -43,12 +43,14 @@ driver.quit()
 with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
     start_rx = int(f.readline())
 
-with open("$XDG_CACHE_HOME/lemonbar/wlan0_start", "w") as f:
-    f.write(start_rx)
+with open("/home/wynand/.cache/lemonbar/wlan0_start", "w") as f:
+    f.write(str(start_rx))
 
 fd = sys.stdout
 
 while True:
+    with open("/home/wynand/.cache/lemonbar/wlan0_start", "r") as f:
+        start_rx = int(f.readline())
     with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
         now_rx = int(f.readline())
     total_rx = humanize.naturalsize(now_rx - start_rx, "%d")
