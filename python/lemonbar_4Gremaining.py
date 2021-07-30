@@ -5,8 +5,11 @@ Log into aldi to see how much data I have left
 
 #standard imports
 from configparser import ConfigParser
+from datetime import datetime
 import os
+from psutil import boot_time
 import re
+import subprocess
 import sys
 from time import sleep
 
@@ -34,32 +37,19 @@ driver.find_element_by_id("login_user_save").click()
 # wait the ready state to be complete by testing if url has finished changing, but timeot after 60s
 WebDriverWait(driver=driver, timeout=60).until(EC.url_changes(url))
 
-
 # find the text I want
 data_text = driver.find_element_by_xpath("//div[contains(@class, 'total_data')]").text
 data_left = re.findall(r'\d+\.*\d*.*B$', data_text)
 
 driver.quit()
 
-with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
-    start_rx = int(f.readline())
-
-with open("/home/wynand/.cache/lemonbar/wlan0_start", "w") as f:
-    f.write(str(start_rx))
-
 fd = sys.stdout
+last_reboot=boot_time()
+last_reboot = datetime.fromtimestamp(last_reboot).strftime('%Y-%m-%d %H:%M')
 
 while True:
-    with open("/sys/class/net/wlan0/statistics/rx_bytes", "r") as f:
-        now_rx = int(f.readline())
-    with open("/home/wynand/.cache/lemonbar/wlan0_start", "r") as f:
-        start_rx = int(f.readline())
-    if start_rx > now_rx:
-        start_rx = start_rx - (2*(abs(now_rx - start_rx)))
-        with open("/home/wynand/.cache/lemonbar/wlan0_start", "w") as f:
-            f.write(str(start_rx))
-
-    total_rx = humanize.naturalsize(now_rx - start_rx, "%d")
+    total_rx = subprocess.run(['vnstat', '--begin', str(last_reboot), "--iface", "wlan0", "--oneline"], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    total_rx = str(total_rx.split(";")[-1]).rstrip()
     fd.write(f'D{total_rx}/{data_left[0]}')
     fd.write("\n")
     fd.flush()
