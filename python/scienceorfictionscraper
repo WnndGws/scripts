@@ -5,27 +5,32 @@ Displays them all for my use
 
 import random
 import re
-import requests_html
 
 import click
 
+import requests_html
+
 RANDOM_EPISODE = random.randint(1, 800)
+
 
 @click.command()
 @click.option(
-    "--episode",
+    '--episode',
     prompt=True,
     default=RANDOM_EPISODE,
-    help="Episode number between 1 and 700"
-    )
+    help='Episode number between 1 and 700')
 @click.option(
-    "--answers",
+    '--answers',
     is_flag=True,
-    help="Flag to show answers")
+    help='Flag to show answers')
+def get_science_or_fiction(episode, answers):  # type: int, str
+    """
+    Return the text from Science or Fiction.
 
-def get_science_or_fiction(episode, answers):
+    Scrapes website text and parses it
+    """
     # The url I want to scrape
-    url = f"https://www.theskepticsguide.org/podcasts/episode-{episode}"
+    url = f'https://www.theskepticsguide.org/podcasts/episode-{episode}'
 
     # Get the content into my memory
     session = requests_html.HTMLSession()
@@ -48,5 +53,6 @@ def get_science_or_fiction(episode, answers):
     for item in item_list:
         print(f'{item}\n')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     get_science_or_fiction()
