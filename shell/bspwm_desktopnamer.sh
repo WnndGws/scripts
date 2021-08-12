@@ -27,6 +27,8 @@ window_list=$(wmctrl -l -x)
 # Set desktop number itterator
 desktop_number=0
 
+hostname=$(paste /etc/hostname | cut -d"-" -f2)
+
 for desktop in $desktops; do
     # Start counting desktops
     desktop_number=$((desktop_number + 1))
@@ -37,7 +39,7 @@ for desktop in $desktops; do
         window=$(printf "%s" "$window_list" | grep -i "$window_id")
         window_class=$(printf "%s" "$window" | cut -d'.' -f2 | cut -d' ' -f1)
         if [ "$window_class" = "alacritty" ]; then
-            window_name=$(printf "%s" "$window" | rev | cut -d"-" -f1 | rev | sed 's/\ //g' | sed 's/X220//g')
+            window_name=$(printf "%s" "$window" | rev | cut -d"-" -f1 | rev | sed 's/\ //g' | sed "s/$hostname//g")
             window_icon=$(printf "%s" "$icon_list" | grep -i "$window_name" | cut -d' ' -f2)
         else
             window_icon=$(printf "%s" "$icon_list" | grep -i "$window_class" | cut -d' ' -f2)
