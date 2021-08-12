@@ -12,7 +12,7 @@ while true; do
     runtime="10 minute"
     endtime=$(date -ud "$runtime" +%s)
     while [ "$(date -u +%s)" -le "$endtime" ]; do
-        number_connections=$(ip add | rg mull | wc -l)
+        number_connections=$(ip add | rg mu?l{1,2}va?d | wc -l)
         case $number_connections in
             2) connected="YES" ;;
             0) connected="NO" ;;
