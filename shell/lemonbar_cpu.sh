@@ -11,7 +11,7 @@ while true; do
 
     # 44th line in awk, print 4th col starting at 2nd character until 5 from the end
     #temp=$(sensors | awk 'NR==3 {print substr($4, 2, length($4)-5)}')
-    temp=$(sensors -j | gron | rg '.*id 0.*input.*' | rg --pcre2 --only-matching '\d{2}(?=\.)')
+    temp=$(sensors -j | gron | rg '.*die.*input.*' | rg --pcre2 --only-matching '\d{2}(?=\.)')
 
     # Start to worry at 70%, investigate at over 100% constantly
     if [ "$one_min_cpu_load_avg" -gt 90 ]; then
