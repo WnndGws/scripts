@@ -64,6 +64,7 @@ while True:
         stdout=subprocess.PIPE,
     ).stdout.decode('utf-8').split('\n')[7:-2]
     total_rx = [x.split('|')[2] for x in total_rx]
+    ### TODO make total_rx handle midnight
     total_rx = [float(re.sub('[^0-9\\.]', '', x)) for x in total_rx]
     total_rx = round(sum(total_rx), 2) * 1000 * 1000
     total_rx = humanize.naturalsize(total_rx)
