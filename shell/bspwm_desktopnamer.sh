@@ -15,6 +15,8 @@ SignalBeta 
 Pidgin 
 Feh 﨤
 Steam 
+Minecraft 
+1.17.1 
 "
 
 #bspc subscribe node_add node_remove desktop_transfer | while read -r _; do
