@@ -30,7 +30,7 @@ def get_screenshot(url: str):
 
     # the element with longest height on page
     driver.set_window_size(1920, 8000)  # just hardcode tall since im lazy
-    sleep(8)  # Time for page to load
+    sleep(5)  # Time for page to load
     driver.get_screenshot_as_file("/tmp/browser.png")
     driver.quit()
 
