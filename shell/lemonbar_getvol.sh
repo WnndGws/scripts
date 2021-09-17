@@ -1,14 +1,14 @@
 #!/usr/bin/env sh
 ## Reads volume
 
-getCurVol() { volume=$(pamixer --get-volume-human)
-        if [ "$volume" = "muted" ]; then
+getCurVol() { volume=$(amixer --card 2 get Headphone | rg --only-matching --pcre2 '(on|off)(?=]' | head -n1)
+        if [ "$volume" = "off" ]; then
             leader="Vm"
             icon="ﱝ"
             volume=0
         else
             # If not text, then want number
-            volume=$(($(pamixer --get-volume)))
+            volume=$(($(amixer --card 2 get Headphone | rg --only-matching --pcre2 '\d{1,3}(?=\%)' | head -n1)))
             if [ "$volume" -gt 50 ]; then
                 leader="VH"
                 icon=""
@@ -27,7 +27,7 @@ getCurVol
 printf "%s\n" "${leader}${icon} ${volume}%"
 
 # Subscribe, and for each line print the current volume
-pactl subscribe | grep --line-buffered "sink" |\
+alsactl monitor |\
     while read -r line; do
         getCurVol
         printf "%s\n" "${leader}${icon} ${volume}%"
