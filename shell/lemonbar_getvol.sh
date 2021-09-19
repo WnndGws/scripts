@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 ## Reads volume
 
-getCurVol() { volume=$(amixer --card 2 get Headphone | rg --only-matching --pcre2 '(on|off)(?=]' | head -n1)
+getCurVol() { volume=$(amixer --card 2 get Headphone | rg --only-matching --pcre2 '(on|off)(?=])' | head -n1)
         if [ "$volume" = "off" ]; then
             leader="Vm"
             icon="ﱝ"
@@ -27,7 +27,7 @@ getCurVol
 printf "%s\n" "${leader}${icon} ${volume}%"
 
 # Subscribe, and for each line print the current volume
-alsactl monitor |\
+stdbuf -oL alsactl monitor |\
     while read -r line; do
         getCurVol
         printf "%s\n" "${leader}${icon} ${volume}%"
