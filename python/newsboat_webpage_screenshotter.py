@@ -12,7 +12,8 @@ from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 @click.command()
 @click.option("--url")
-def get_screenshot(url: str):
+@click.option("--seconds", default=5)
+def get_screenshot(url: str, seconds: int):
     """Take a tall screenshot into temp dir."""
     # Set up webdriver
     binary = FirefoxBinary("/bin/firefox")
@@ -26,11 +27,10 @@ def get_screenshot(url: str):
         service_log_path=os.path.devnull,  # Dont log
     )
     driver.get(url)
-    # sleep(15)
 
     # the element with longest height on page
-    driver.set_window_size(1920, 8000)  # just hardcode tall since im lazy
-    sleep(5)  # Time for page to load
+    driver.set_window_size(1920, seconds*1500)  # just hardcode tall since im lazy
+    sleep(seconds)  # Time for page to load
     driver.get_screenshot_as_file("/tmp/browser.png")
     driver.quit()
 
