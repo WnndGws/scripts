@@ -41,12 +41,12 @@ for desktop in $desktops; do
         window=$(printf "%s" "$window_list" | grep -i "$window_id")
         window_class=$(printf "%s" "$window" | cut -d'.' -f2 | cut -d' ' -f1)
         if [ "$window_class" = "alacritty" ]; then
-            window_name=$(printf "%s" "$window" | rev | cut -d"-" -f1 | rev | sed 's/\ //g' | sed "s/$hostname//g")
+            window_name=$(printf "%s" "$window" | rg --pcre2 --only-matching "(?<=$hostname ).*$" | rev | cut -d" " -f1 | rev)
             window_icon=$(printf "%s" "$icon_list" | grep -i "$window_name" | cut -d' ' -f2)
         else
             window_icon=$(printf "%s" "$icon_list" | grep -i "$window_class" | cut -d' ' -f2)
         fi
-        [ -z "$window_icon" ] && window_icon="x"
+        [ -z "$window_icon" ] && window_icon=""
         window_string="$window_string"" $window_icon"
     done
     bspc desktop "$desktop" --rename "$window_string"
