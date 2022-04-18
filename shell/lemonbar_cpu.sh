@@ -6,12 +6,12 @@ green='#99c76c'
 yellow='#ffc24b'
 
 while true; do
+    HOSTNAME=$(paste /etc/hostname)
     # Take one_min core load, times by 100 to get percentage, divide by 4 since quadcore cpu
     one_min_cpu_load_avg=$(awk '{ printf "%1d",$1*25 }' < /proc/loadavg)
 
     # 44th line in awk, print 4th col starting at 2nd character until 5 from the end
-    #temp=$(sensors -j | gron | rg '.*die.*input.*' | rg --pcre2 --only-matching '\d{2}(?=\.)')
-    temp=$(liquidctl --json status | gron | rg --pcre2 --only-matching '\d{2}(?=\.)')
+    [ "$HOSTNAME" = "x220" ] && temp=$(sensors -j | gron | rg '.*temp1\.temp1_input.*' | rg --pcre2 --only-matching '\d{2}(?=\.)') || temp=$(liquidctl --json status | gron | rg --pcre2 --only-matching '\d{2}(?=\.)')
 
     # Start to worry at 70%, investigate at over 100% constantly
     if [ "$one_min_cpu_load_avg" -gt 90 ]; then
