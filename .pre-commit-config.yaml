@@ -1,0 +1,31 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.1.0
+    hooks:
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: name-tests-test
+-   repo: local
+    hooks:
+    -   id: flake8
+        entry: flake8
+        name: flake8
+        language: system
+        types_or: [python, pyi]
+-   repo: local
+    hooks:
+      - id: black
+        name: black
+        language: system
+        entry: black
+        minimum_pre_commit_version: 2.9.2
+        require_serial: true
+        types_or: [python, pyi]
+-   repo: https://github.com/asottile/reorder_python_imports
+    rev: v2.7.1
+    hooks:
+    -   id: reorder-python-imports
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v2.31.0
+    hooks:
+    -   id: pyupgrade
