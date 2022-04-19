@@ -6,4 +6,3 @@ for i in "$HOME/git"/*; do
     git pull > /dev/null
     printf "$i pulled\n"
 done
-
