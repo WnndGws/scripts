@@ -5,8 +5,8 @@ number_of_patches_left=$(git status --short | wc -l)
 
 while [ "$number_of_patches_left" -gt 0 ]; do
     git pull
-    git add --patch .
+    git add --patch
+    pre-commit run
     cz c
-    git push
     number_of_patches_left=$(git status --short | wc -l)
 done
