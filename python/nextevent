@@ -141,7 +141,7 @@ def getnextevent():
         lowest_title = "Work"
     if re.match(r"^Forecast.*", lowest_title) is not None:
         info = re.findall(r"(?<=\().*(?=\))", lowest_title)
-        lowest_title = f"Weather - {info[0]}"
+        lowest_title = f"{info[0]}"
     if len(lowest_title) > 15:
         lowest_title = f"{lowest_title[:5]}…{lowest_title[-5:]}"
 
