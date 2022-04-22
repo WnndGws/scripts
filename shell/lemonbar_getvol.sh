@@ -1,5 +1,14 @@
 #!/usr/bin/env sh
-## Reads volume
+## Reads volumes
+
+getCurMic() { mic_volume=$(pactl list sources | rg -A8 "RUNNING" | rg --only-matching "\d{2,3}%" | sed 's/.$//')
+        if [ -z "${mic_volume}" ]; then
+            mic_icon=""
+            mic_volume=0
+        else
+            mic_icon=""
+        fi
+}
 
 getCurVol() { volume=$(pamixer --get-volume-human)
         if [ "$volume" = "muted" ]; then
@@ -24,11 +33,13 @@ getCurVol() { volume=$(pamixer --get-volume-human)
 
 # Need to print something, otherwise it waits for 1st event
 getCurVol
-printf "%s\n" "${leader}${icon} ${volume}%"
+getCurMic
+printf "%s\n" "${leader}${icon} ${volume}% | ${mic_icon} ${mic_volume}%"
 
 # Subscribe, and for each line print the current volume
 pactl subscribe | grep --line-buffered "sink" |\
     while read -r line; do
         getCurVol
-        printf "%s\n" "${leader}${icon} ${volume}%"
+        getCurMic
+        printf "%s\n" "${leader}${icon} ${volume}% | ${mic_icon} ${mic_volume}%"
     done
