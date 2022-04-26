@@ -149,7 +149,8 @@ def getnextevent():
         print(f"All Day - {lowest_title}")
     else:
         print(
-            f'{humanize.naturalday(lowest_start_time).capitalize()}-{datetime.datetime.strftime(lowest_start_time, "%H:%M")}-{lowest_title}'
+            # f'{humanize.naturalday(lowest_start_time).capitalize()}-{datetime.datetime.strftime(lowest_start_time, "%H:%M")}-{lowest_title}'
+            f'{datetime.datetime.strftime(lowest_start_time, "%H:%M")}-{lowest_title}'
         )
 
 
