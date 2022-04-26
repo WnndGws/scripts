@@ -4,6 +4,7 @@
 # Define icons
 icon_list="
 Alacritty 
+whatsapp-nativefier-d40211 
 MozillaFirefox 
 NVim 
 MPV 
@@ -40,6 +41,7 @@ for desktop in $desktops; do
     for window_id in $winids_on_desktop; do
         window=$(printf "%s" "$window_list" | grep -i "$window_id")
         window_class=$(printf "%s" "$window" | cut -d'.' -f2 | cut -d' ' -f1)
+        echo "$window_class"
         if [ "$window_class" = "alacritty" ]; then
             window_name=$(printf "%s" "$window" | rg --pcre2 --only-matching "(?<=$hostname ).*$" | rev | cut -d" " -f1 | rev)
             window_icon=$(printf "%s" "$icon_list" | grep -i "$window_name" | cut -d' ' -f2)

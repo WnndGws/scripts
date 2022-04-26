@@ -8,7 +8,6 @@ print_state() {
     BAT_STRING=$(acpi | sed -n 1p)
     BAT_PERC=$(echo $BAT_STRING | grep --perl-regexp --only-matching '[0-9]+(?=%)')
     BAT_STATE=$(echo $BAT_STRING | grep --extended-regexp --only-matching '(Dis|Not )?[Cc]harging|Unknown|Full')
-    echo $BAT_STATE
     TIME=$(echo $BAT_STRING | grep --extended-regexp --only-matching '[0-9]{2}:[0-9]{2}')
 
     if [ $BAT_STATE = "Not charging" ]; then
