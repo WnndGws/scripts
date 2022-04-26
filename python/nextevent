@@ -2,22 +2,20 @@
 """Written to replace the next_event2.
 Checks Google Calendar for next event and displays it nicely
 """
-
 import datetime
 import os
 import re
 import sys
 
-# python-oauth2client
+import httplib2
+import humanize
+from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-
-# python-google-api-python-client
-from apiclient import discovery
-import httplib2
-import humanize
 from pytz import timezone
+# python-oauth2client
+# python-google-api-python-client
 
 # Next set up the Google Calendar scopes and files for the authentication flow
 FLAGS = None
