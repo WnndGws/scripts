@@ -3,6 +3,7 @@
 Ban succesful resposters on reddit
 """
 import configparser
+
 import praw
 
 CONFIG = configparser.ConfigParser()

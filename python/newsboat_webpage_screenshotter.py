@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Take a tall screenshot of a page so i dont have to open my browser since I'm lazy."""
-
 import os
 from time import sleep
 
 import click
-
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
@@ -29,7 +27,7 @@ def get_screenshot(url: str, seconds: int):
     driver.get(url)
 
     # the element with longest height on page
-    driver.set_window_size(1920, seconds*1500)  # just hardcode tall since im lazy
+    driver.set_window_size(1920, seconds * 1500)  # just hardcode tall since im lazy
     sleep(seconds)  # Time for page to load
     driver.get_screenshot_as_file("/tmp/browser.png")
     driver.quit()
