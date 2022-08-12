@@ -4,7 +4,7 @@
 COUNTRY="Australia"
 
 # Test if file is older than 6hrs and get new data if it is
-test "$(/usr/bin/find $XDG_CACHE_HOME/corona -mmin +3600)" &&
+test "$(/usr/bin/find $XDG_CACHE_HOME/corona -mmin +1)" &&
     curl --silent "https://corona-stats.online/$COUNTRY?format=json&source=1" -o $XDG_CACHE_HOME/corona
 
 
@@ -14,6 +14,7 @@ DAILY_DELTA=$(jq '.[] | select(.province == "Western Australia") | .confirmedByD
 DEATHS=$(jq '.[] | select(.province == "Western Australia") | .deathsByDay[-1]' $XDG_CACHE_HOME/corona)
 MORTALITY=$(jq '.[] | select(.province == "Western Australia") | .mortalityPer' $XDG_CACHE_HOME/corona | sed "s/\"//g")
 
-OUTPUT=" ${CASES}( ${DAILY_INC_CASES} 喝 $DAILY_DELTA)  ${DEATHS}(${MORTALITY}%)"
+#OUTPUT="!${CASES}(${DAILY_INC_CASES} 喝${DAILY_DELTA}) ${DEATHS}(${MORTALITY}%)"
+OUTPUT="N${CASES}(+${DAILY_INC_CASES}喝${DAILY_DELTA})(${DEATHS})"
 
-echo $OUTPUT
+echo "${OUTPUT}"

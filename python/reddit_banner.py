@@ -29,7 +29,7 @@ def banspam():
         ck = post.author.comment_karma or 1
         tk = post.author.total_karma
         factor = tk / ck
-        if factor > 25 and tk > 10000:
+        if factor > 100 and tk > 10000:
             print(f"Ban {post.author} {factor} {post.title}")
             post.author.block()
 

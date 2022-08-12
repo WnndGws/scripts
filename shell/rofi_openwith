@@ -44,7 +44,7 @@ speedread_summary"\
   echo "$link_handlers"
 
   case "$link_handlers" in
-    umpv) "$HOME/git/scripts/python/umpv" "$url" & disown ;;
+    umpv) umpv "$url" & disown ;;
     umpv_audio) "$HOME/git/scripts/python/umpv_audio" "$url" & disown ;;
     mpv) mpv "$url" 2>/dev/null & disown ;;
     bookmark) buku --add "$url" toread,"$feed_title" --title "$title" & disown ;;
