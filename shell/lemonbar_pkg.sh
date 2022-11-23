@@ -25,5 +25,5 @@ while true; do
 
     fi
 
-    sleep 3600
+    sleep 360000
 done

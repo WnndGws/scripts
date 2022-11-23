@@ -18,7 +18,7 @@ import subprocess
 from functools import partial
 
 
-EXCLUDED_CLASSES = ['Pidgin', 'firefox', 'xev', 'lemonbar', 'xfce4-panel', 'Chromium']
+EXCLUDED_CLASSES = ['Pidgin', 'firefox', 'xev', 'lemonbar', 'xfce4-panel', 'Chromium', 'mpv']
 
 logging_level = logging.ERROR if len(sys.argv) == 1 else sys.argv[1]
 logging.basicConfig(filename=os.path.expandvars('$XDG_CACHE_HOME/swallowed.log'),
@@ -176,4 +176,3 @@ if __name__ == '__main__':
     except Exception as e:
         logging.debug('Error occured in mainloop:'
                       f'\n{e}\n{traceback.format_exc()}')
-
