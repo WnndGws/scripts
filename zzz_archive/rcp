@@ -25,10 +25,10 @@ fi
 
 #find $pat -maxdepth 1 -iname "$term" -print0 | while IFS= read -r -d $'\0' line;
 fd --max-depth 1 "$term" "$pat" | while IFS= read -r -d $'\0' line;
-    do
-        echo "Copying file $n of $total_copies\033[0K\r"
-        rsync -vrhP "$line" "$2"
-        n=$((n+1))
-        echo "\n"
-    done
+do
+    echo "Copying file $n of $total_copies\033[0K\r"
+    rsync -vrhP "$line" "$2"
+    n=$((n+1))
+    echo "\n"
+done
 # Find term in path and copies, while outputing how many have been done

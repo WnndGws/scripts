@@ -1,15 +1,21 @@
 #!/usr/bin/python
 ## Use tldr for man if exits, otherwise rtfm
 
-import click
 import os
 import re
 import subprocess
 
+import click
+
 
 def get_programs(ctx, args, incomplete):
-    programs = subprocess.run(["pacman", "-Qqe"], stdout=subprocess.PIPE).stdout.decode('utf-8').split("\n")
+    programs = (
+        subprocess.run(["pacman", "-Qqe"], stdout=subprocess.PIPE)
+        .stdout.decode("utf-8")
+        .split("\n")
+    )
     return [k for k in programs if incomplete in k]
+
 
 @click.command()
 @click.argument("program", type=click.STRING, autocompletion=get_programs)
@@ -42,6 +48,7 @@ def try_tldr(program):
             click.echo(
                 f"There either is no program called {program}, or it does not have a man-page"
             )
+
 
 if __name__ == "__main__":
     try_tldr()

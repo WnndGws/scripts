@@ -6,8 +6,8 @@ Reminde me each day about my FBC startups
 import datetime
 import logging
 import sys
-
 sys.path.insert(0, "/home/wynand/git/neoFrogBox")
+
 import os.path
 
 import check_date_range
@@ -16,6 +16,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -32,6 +33,10 @@ def find_times():
     streams = check_date_range.get_fbc_streams(
         datetime.datetime.utcnow(),
         datetime.datetime.utcnow(),
+        False,
+        False,
+        False,
+        False,
         False,
         False,
         False,

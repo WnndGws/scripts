@@ -24,12 +24,12 @@ fi
 # If copy to directory doesn't exist then make it
 
 find $pat -maxdepth 1 -iname "$term" -print0 | while IFS= read -r -d $'\0' line;
-    do
-        echo "Copying file $n of $total_copies\033[0K\r"
-        rsync -vrhP --remove-source-files "$line" "$2"
-        n=$((n+1))
-        echo "\n"
-    done
+do
+    echo "Copying file $n of $total_copies\033[0K\r"
+    rsync -vrhP --remove-source-files "$line" "$2"
+    n=$((n+1))
+    echo "\n"
+done
 # Find term in path and copies, then removes source thus simulating moving, while outputing how many have been done
 
 if [[ "$2" = $HOME\/run\/media\/wynand\/.* ]]; then

@@ -1,58 +1,54 @@
 #!/usr/bin/python3
-''' Use to find pdfs on job websites
-'''
+""" Use to find pdfs on job websites
+"""
 
-from bs4 import BeautifulSoup
-from requests import get
-from fake_useragent import UserAgent
 import click
+from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
+from requests import get
 
 UA = UserAgent()
 
 
 def download_pdfs(test_url):
-    ''' Takes a url and sees if it ends in pdf
-    '''
+    """Takes a url and sees if it ends in pdf"""
 
-    if test_url.endswith(('.pdf')):
-        pdf_name = test_url.split('/')[-1]
+    if test_url.endswith(".pdf"):
+        pdf_name = test_url.split("/")[-1]
         pdf_file = get(test_url).content
-        #print(test_url)
-        #print(pdf_name)
+        # print(test_url)
+        # print(pdf_name)
 
         try:
-            open(pdf_name, 'r')
-        except IOError:
-            with open(pdf_name, 'wb') as f:
+            open(pdf_name)
+        except OSError:
+            with open(pdf_name, "wb") as f:
                 f.write(pdf_file)
 
-def lovely_soup(url):
-    ''' Takes URL and returns the BS from it
-    '''
 
-    header = {'User-Agent': UA.chrome}
+def lovely_soup(url):
+    """Takes URL and returns the BS from it"""
+
+    header = {"User-Agent": UA.chrome}
     ret = get(url, headers=header)
     cet = ret.text
-    return BeautifulSoup(cet, 'lxml')
+    return BeautifulSoup(cet, "lxml")
+
 
 @click.command()
-@click.option(
-    "--scrape-url",
-    prompt=True,
-    help="The URL of the website to check"
-    )
+@click.option("--scrape-url", prompt=True, help="The URL of the website to check")
 def find_links(scrape_url):
-    ''' Checks page source for pdfs
-    '''
+    """Checks page source for pdfs"""
 
     soup = lovely_soup(scrape_url)
-    links = soup.findAll('a')
+    links = soup.findAll("a")
 
     for link in links:
         try:
-            download_pdfs(link['href'])
+            download_pdfs(link["href"])
         except:
             pass
+
 
 if __name__ == "__main__":
     find_links()

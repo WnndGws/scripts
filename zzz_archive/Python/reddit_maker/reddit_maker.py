@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Helper function for creating multi-reddits.
 Run script and paste the string it outputs into the accompanying Excel file.
@@ -19,6 +18,6 @@ while maxCell > 0:
 pasteString = "="
 
 for i in cellCount:
-    pasteString = pasteString + '{0}{1}&"+"&'.format(column, i)
+    pasteString = pasteString + f'{column}{i}&"+"&'
 
 print(pasteString)

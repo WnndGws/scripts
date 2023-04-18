@@ -31,7 +31,7 @@ with open("filelock.settings", "rb") as file:
 
 try:
     target_file = file_list[current_date]
-    os.system("7z x {0}".format(target_file))
+    os.system(f"7z x {target_file}")
 except KeyError:
     print("No matching files for today")
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-# finds the active sink for pulse audio and increments the volume. 
+# finds the active sink for pulse audio and increments the volume.
 # useful when you have multiple audio outputs and have a key bound to vol-up and down
 
 #Set colours
@@ -107,7 +107,7 @@ function listen {
     firstrun=0
 
     pactl subscribe 2>/dev/null | {
-        while true; do 
+        while true; do
             {
                 # If this is the first time just continue
                 # and print the current state

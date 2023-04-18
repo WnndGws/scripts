@@ -35,8 +35,8 @@ echo "$deltaMb megabyte(s) have been written in the last day, threshold is $warn
 
 if ((  $(bc <<< "$deltaMb > $warningThreshold") ))
 then
-	# http://stackoverflow.com/questions/2990414/echo-that-outputs-to-stderr
-	(>&2 echo "Threshold disk writes has been exceeded on $(date)! Megabytes written: $deltaMb")
+    # http://stackoverflow.com/questions/2990414/echo-that-outputs-to-stderr
+    (>&2 echo "Threshold disk writes has been exceeded on $(date)! Megabytes written: $deltaMb")
 fi
 
 # exercise for the reader: save value to file, and compare it to tomorrow to see how many mb's were written

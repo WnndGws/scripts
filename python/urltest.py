@@ -5,7 +5,7 @@ Takes url list and sees if theyre alive, used to test my newsboat urls
 # standard imports
 import requests
 
-with open("urldata", "r") as f:
+with open("urldata") as f:
     data = f.read().split("\n")
 
 # Remove trailing ,

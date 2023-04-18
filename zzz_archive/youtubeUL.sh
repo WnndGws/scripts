@@ -19,13 +19,13 @@ source $HOME/.virtualenvs/youtube-upload/bin/activate
 # Source youtube-ul in it's virtual env
 
 find . -mindepth 1 -type f -print0 | while IFS= read -r -d $'\0' line;
-    do
-        echo "Uploading file $n of $total_copies\033[0K\r"
-        n=$((n+1))
-        title=$(echo "$line" | rev | cut -d \/ -f1 | rev)
-        $HOME/.virtualenvs/youtube-upload/youtube-upload/bin/youtube-upload --client-secrets $HOME/.youtube-uploads.credentials.json --privacy unlisted --playlist "Uploaded on $(date +%Y%m%d)" -t "$title" "$line"
-        echo "\n"
-    done
+do
+    echo "Uploading file $n of $total_copies\033[0K\r"
+    n=$((n+1))
+    title=$(echo "$line" | rev | cut -d \/ -f1 | rev)
+    $HOME/.virtualenvs/youtube-upload/youtube-upload/bin/youtube-upload --client-secrets $HOME/.youtube-uploads.credentials.json --privacy unlisted --playlist "Uploaded on $(date +%Y%m%d)" -t "$title" "$line"
+    echo "\n"
+done
 deactivate
 ## find all files in current folder and upload them
 

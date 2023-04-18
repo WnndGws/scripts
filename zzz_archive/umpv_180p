@@ -30,15 +30,16 @@ Note: you can supply custom mpv path and options with the MPV environment
       is already running), this will be ignored.
 """
 
-import sys
-import os
 import errno
-import subprocess
 import fcntl
+import os
 import stat
 import string
+import subprocess
+import sys
 
 files = sys.argv[1:]
+
 
 # this is the same method mpv uses to decide this
 def is_url(filename):

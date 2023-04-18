@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 ## Tests snap_ya.py
 
-import snap_ya
+import subprocess
 
 import hypothesis
 import pytest
-import subprocess
+import snap_ya
 
 
 def test_package_list():

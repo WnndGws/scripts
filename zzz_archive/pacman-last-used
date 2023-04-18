@@ -4,7 +4,7 @@ function pacman-last-used {
 
     storage_dir=${HOME}/.config/pacman-last
     mkdir -p $storage_dir
-    
+
     unsorted=$storage_dir/"packages.1.exec_bins.log"
     sorted=$storage_dir/"packages.2.exec_bins.sorted"
     sorted_packs=`mktemp` #"3.packages.sorted"
@@ -17,74 +17,74 @@ function pacman-last-used {
 
 
     function setOSspecifics {
-      local os=$(uname -r | awk -F'-' '{print $NF}')
+        local os=$(uname -r | awk -F'-' '{print $NF}')
 
-      case $os in
-          lts)
-        cmd_package_ownership='pacman -Qo';
-        cmd_package_name='sed -r "s|^.+is owned by (.*)\s.+|\1|"';
-        ;;
+        case $os in
+            lts)
+                cmd_package_ownership='pacman -Qo';
+                cmd_package_name='sed -r "s|^.+is owned by (.*)\s.+|\1|"';
+                ;;
 
-          # TODO: others
-      esac
+                # TODO: others
+        esac
 
-      if [ "$cmd_package_ownership" = "" ] || [ "$cmd_package_name" = "" ];then
-          echo "Compatible OS not detected."
-          exit -1
-      fi	
+        if [ "$cmd_package_ownership" = "" ] || [ "$cmd_package_name" = "" ];then
+            echo "Compatible OS not detected."
+            exit -1
+        fi
     }
 
 
     function calc_packages {
 
-      if [ -e $unsorted ]; then
-          echo -n " [Info] $unsorted already exists. Overwrite [Y/n]? "; read ans
-          [ "$ans" != "y" ] && echo " [Info] Using existing." && return 0
-      fi
+        if [ -e $unsorted ]; then
+            echo -n " [Info] $unsorted already exists. Overwrite [Y/n]? "; read ans
+            [ "$ans" != "y" ] && echo " [Info] Using existing." && return 0
+        fi
 
-      # Otherwise proceed
-      echo "" > $unsorted
+        # Otherwise proceed
+        echo "" > $unsorted
 
-      local width=$(stty size | cut -d" " -f 2)
+        local width=$(stty size | cut -d" " -f 2)
 
-      echo "      [Info] Checking:"
+        echo "      [Info] Checking:"
 
-      for dir in `echo $PATH | sed "s|:| |g"`;
-           #for dir in /usr/bin/core_perl
-      do
-          local num=$(ls $dir | wc -l)
-          local count=0
+        for dir in `echo $PATH | sed "s|:| |g"`;
+        #for dir in /usr/bin/core_perl
+        do
+            local num=$(ls $dir | wc -l)
+            local count=0
 
-          echo "             $dir"
+            echo "             $dir"
 
-          for bin in `ls $dir`; do
-            count=$(( $count + 1))
-            local full_path=$dir/$bin
+            for bin in `ls $dir`; do
+                count=$(( $count + 1))
+                local full_path=$dir/$bin
 
-            local last_used=$(stat -c %x $full_path)
-            local owned_by=$(eval $cmd_package_ownership $full_path 2>&1 | eval $cmd_package_name)
+                local last_used=$(stat -c %x $full_path)
+                local owned_by=$(eval $cmd_package_ownership $full_path 2>&1 | eval $cmd_package_name)
 
-            [ "`echo $owned_by | grep error`" != "" ] && owned_by="ERROR"
+                [ "`echo $owned_by | grep error`" != "" ] && owned_by="ERROR"
 
-            local out="${last_used}\t${full_path}\t${owned_by}"
+                local out="${last_used}\t${full_path}\t${owned_by}"
 
-            echo -e "$out" >> $unsorted
+                echo -e "$out" >> $unsorted
 
-            local line=$( printf "             (%4d / %4d) %30s -- %s" $count $num "$owned_by" "$full_path" )
-            printf "\r%-${width}s" "$line"
-          done
-      done
+                local line=$( printf "             (%4d / %4d) %30s -- %s" $count $num "$owned_by" "$full_path" )
+                printf "\r%-${width}s" "$line"
+            done
+        done
     }
 
 
 
     function sanityCheck {
-      file=$1
-      message="$2"
+        file=$1
+        message="$2"
 
-      ! [ -e $file ] && echo "[Error] Cannot find $file. Terminating." && exit -1
+        ! [ -e $file ] && echo "[Error] Cannot find $file. Terminating." && exit -1
 
-      [ "$message" != "" ] && echo "$message"
+        [ "$message" != "" ] && echo "$message"
     }
 
 
@@ -107,14 +107,14 @@ function pacman-last-used {
     # Flatten lines of adjacent packages
     sanityCheck $sorted_packs ""
     awk -F'\t' 's != $1 || NR ==1{s=$1;if(p){print p};p=$0;next}{sub($1,"",$0);p=p""$0;}END{print p}' $sorted_packs\
-	| awk -F"\t" '{print $1"\t"$2"\t"$NF}' > $sorted_packs_flat
+        | awk -F"\t" '{print $1"\t"$2"\t"$NF}' > $sorted_packs_flat
 
 
     sanityCheck $sorted_packs_flat " - 4. Grouping packages by date (last usage)"
     sort -k3 $sorted_packs_flat\
-	| awk -F'\t' '{print $3"\t"$1}'\
-	| awk -F'\t' 's != $1 || NR ==1{s=$1;if(p){print p};p=$0;next}{sub($1,"",$1);p=p""$0;}END{print p}'\
-	      > $sorted_packs_last
+        | awk -F'\t' '{print $3"\t"$1}'\
+        | awk -F'\t' 's != $1 || NR ==1{s=$1;if(p){print p};p=$0;next}{sub($1,"",$1);p=p""$0;}END{print p}'\
+        > $sorted_packs_last
 
     echo ""
 
@@ -123,7 +123,7 @@ function pacman-last-used {
    ->   $unsorted
    ->   $sorted
    ->   $sorted_packs_flat
-   ->   $sorted_packs_last"
+    ->   $sorted_packs_last"
 
     echo ""
 }

@@ -11,7 +11,11 @@ import random
 current_year = int(datetime.datetime.strftime(datetime.datetime.now(), "%Y"))
 this_month = int(datetime.datetime.strftime(datetime.datetime.now(), "%m"))
 next_month = this_month + 1
-days_next_month = (datetime.date(current_year, next_month, 1) - datetime.date(current_year, this_month, 1)).days
+days_next_month = (
+    datetime.date(current_year, next_month, 1)
+    - datetime.date(current_year, this_month, 1)
+).days
+
 
 def get_leftover_deck():
     # Set up deck of cards
@@ -21,9 +25,9 @@ def get_leftover_deck():
     red_deck = []
     black_deck = []
     for number, suite in itertools.product(card_numbers, black_suites):
-        black_deck.append(f'{number}{suite}')
+        black_deck.append(f"{number}{suite}")
     for number, suite in itertools.product(card_numbers, red_suites):
-        red_deck.append(f'{number}{suite}')
+        red_deck.append(f"{number}{suite}")
     random.shuffle(black_deck)
     random.shuffle(red_deck)
 
@@ -49,6 +53,7 @@ def get_leftover_deck():
     leftover_deck = red_deck + black_deck
     return leftover_deck
 
+
 leftover_deck = ()
 while not 5 < len(leftover_deck) < 8:
     leftover_deck = get_leftover_deck()
@@ -59,15 +64,15 @@ print(required_days)
 i = 0
 while required_days > 0:
     if i < 3:
-        three_random_days.append(three_random_days[i] + random.randrange(0,3))
+        three_random_days.append(three_random_days[i] + random.randrange(0, 3))
         i += 1
         required_days -= 1
     if i >= 3:
-        three_random_days.append(random.randrange(1,days_next_month))
+        three_random_days.append(random.randrange(1, days_next_month))
         i += 1
         required_days -= 1
 days = list(zip(three_random_days, leftover_deck))
 days.sort(key=lambda tup: tup[0])
 print(days)
 
-#print(locals())
+# print(locals())

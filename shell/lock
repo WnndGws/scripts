@@ -32,7 +32,7 @@ xset dpms force off
 
 i3lock --ignore-empty-password --image=$output_loc --nofork &&\
 
-/bin/rm $output_loc
+    /bin/rm $output_loc
 
 # Unmutes after unlock if needed
 if [ "$muteStatus" = "no" ]

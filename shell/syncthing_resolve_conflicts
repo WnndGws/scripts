@@ -116,9 +116,9 @@ cmd() {
     else
         case "$(uname -s)" in
             Darwin)
-                locate_cmd=(locate -0);;
+                locate_cmd=(locate -0) ;;
             *)
-                locate_cmd=(locate -0 -e);;
+                locate_cmd=(locate -0 -e) ;;
         esac
         if [[ -z $DIRECTORY ]]
         then
@@ -145,19 +145,19 @@ check_dir() {
 while [[ -n "$1" ]]; do
     case "$1" in
         -h|--help)
-            usage; exit 0;;
+            usage; exit 0 ;;
         -v|-V|--version)
-            version; exit 0;;
+            version; exit 0 ;;
         -d|--directory)
-            DIRECTORY=$(check_dir "$2"); shift;;
+            DIRECTORY=$(check_dir "$2"); shift ;;
         -f|--find)
-            USE_FIND=1;;
+            USE_FIND=1 ;;
         -o|--output)
-            OUTPUTONLY=1;;
+            OUTPUTONLY=1 ;;
         --nocolor)
-            USE_COLOR='n';;
+            USE_COLOR='n' ;;
         *)
-            usage; exit 1;;
+            usage; exit 1 ;;
     esac
     shift
 done
@@ -241,7 +241,7 @@ while IFS= read -u 3 -r -d '' conflict; do
         # shellcheck disable=SC2162
         while read c; do
             case $c in
-                q|Q) exit 0;;
+                q|Q) exit 0 ;;
                 r|R) plain "$(rm -v "$conflict")"; break ;;
                 o|O) plain "$(mv -v "$conflict" "$file")"; break ;;
                 v|V)

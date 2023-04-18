@@ -13,7 +13,7 @@ print_state() {
     if [ $BAT_STATE = "Not charging" ]; then
         TIME="Charged"
         BAT_PERC=100
-    #else
+        #else
         #TIME=$(acpi | sed -n 1p)
         #TIME=${TIME%:*}
         #TIME=${TIME##* }

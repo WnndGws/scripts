@@ -2,10 +2,12 @@
 ## Takes the argument of a url and outputs the paragraph text from that page to a textfile
 
 import re
-import requests
 import sys
 
+import requests
+
 from bs4 import BeautifulSoup
+
 
 ## Collect command-line arguments from input
 def getopts(argv):

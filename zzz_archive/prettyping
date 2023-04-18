@@ -40,7 +40,7 @@
 # TODO? How will prettyping behave if it receives a duplicate response?
 
 print_help() {
-	cat << EOF
+    cat << EOF
 Usage: $MYNAME [prettyping parameters] <standard ping parameters>
 
 This script is a wrapper around the system's "ping" tool. It will substitute
@@ -77,110 +77,110 @@ EOF
 # Thanks to people at #bash who pointed me at
 # http://bash-hackers.org/wiki/doku.php/scripting/posparams
 parse_arguments() {
-	USE_COLOR=1
-	USE_MULTICOLOR=1
-	USE_UNICODE=1
-	USE_LEGEND=1
+    USE_COLOR=1
+    USE_MULTICOLOR=1
+    USE_UNICODE=1
+    USE_LEGEND=1
 
-	if [ -t 1 ]; then
-		IS_TERMINAL=1
-	else
-		IS_TERMINAL=0
-	fi
+    if [ -t 1 ]; then
+        IS_TERMINAL=1
+    else
+        IS_TERMINAL=0
+    fi
 
-	LAST_N=60
-	OVERRIDE_COLUMNS=0
-	OVERRIDE_LINES=0
-	RTT_MIN=auto
-	RTT_MAX=auto
+    LAST_N=60
+    OVERRIDE_COLUMNS=0
+    OVERRIDE_LINES=0
+    RTT_MIN=auto
+    RTT_MAX=auto
 
-	PING_BIN="ping"
-	#PING_BIN="./mockping.awk"
-	PING_PARAMS=( )
+    PING_BIN="ping"
+    #PING_BIN="./mockping.awk"
+    PING_PARAMS=( )
 
-	AWK_BIN="awk"
-	AWK_PARAMS=( )
+    AWK_BIN="awk"
+    AWK_PARAMS=( )
 
-	while [[ $# != 0 ]] ; do
-		case "$1" in
-			-h | -help | --help )
-				print_help
-				exit
-				;;
+    while [[ $# != 0 ]] ; do
+        case "$1" in
+            -h | -help | --help )
+                print_help
+                exit
+                ;;
 
-			# Forbidden ping parameters within prettyping:
-			-f )
-				echo "${MYNAME}: You can't use the -f (flood) option."
-				exit 1
-				;;
-			-R )
-				# -R prints extra information at each ping response.
-				echo "${MYNAME}: You can't use the -R (record route) option."
-				exit 1
-				;;
-			-q )
-				echo "${MYNAME}: You can't use the -q (quiet) option."
-				exit 1
-				;;
-			-v )
-				# -v enables verbose output. However, it seems the output with
-				# or without this option is the same. Anyway, prettyping will
-				# strip this parameter.
-				;;
-			# Note:
-			#  Small values for -s parameter prevents ping from being able to
-			#  calculate RTT.
+                # Forbidden ping parameters within prettyping:
+            -f )
+                echo "${MYNAME}: You can't use the -f (flood) option."
+                exit 1
+                ;;
+            -R )
+                # -R prints extra information at each ping response.
+                echo "${MYNAME}: You can't use the -R (record route) option."
+                exit 1
+                ;;
+            -q )
+                echo "${MYNAME}: You can't use the -q (quiet) option."
+                exit 1
+                ;;
+            -v )
+                # -v enables verbose output. However, it seems the output with
+                # or without this option is the same. Anyway, prettyping will
+                # strip this parameter.
+                ;;
+                # Note:
+                #  Small values for -s parameter prevents ping from being able to
+                #  calculate RTT.
 
-			# New parameters:
-			-a )
-				# TODO: Implement audible ping for responses or for missing packets
-				;;
+                # New parameters:
+            -a )
+                # TODO: Implement audible ping for responses or for missing packets
+                ;;
 
-			-color        | --color        ) USE_COLOR=1 ;;
-			-nocolor      | --nocolor      ) USE_COLOR=0 ;;
-			-multicolor   | --multicolor   ) USE_MULTICOLOR=1 ;;
-			-nomulticolor | --nomulticolor ) USE_MULTICOLOR=0 ;;
-			-unicode      | --unicode      ) USE_UNICODE=1 ;;
-			-nounicode    | --nounicode    ) USE_UNICODE=0 ;;
-			-legend       | --legend       ) USE_LEGEND=1 ;;
-			-nolegend     | --nolegend     ) USE_LEGEND=0 ;;
-			-terminal     | --terminal     ) IS_TERMINAL=1 ;;
-			-noterminal   | --noterminal   ) IS_TERMINAL=0 ;;
+            -color        | --color        ) USE_COLOR=1 ;;
+            -nocolor      | --nocolor      ) USE_COLOR=0 ;;
+            -multicolor   | --multicolor   ) USE_MULTICOLOR=1 ;;
+            -nomulticolor | --nomulticolor ) USE_MULTICOLOR=0 ;;
+            -unicode      | --unicode      ) USE_UNICODE=1 ;;
+            -nounicode    | --nounicode    ) USE_UNICODE=0 ;;
+            -legend       | --legend       ) USE_LEGEND=1 ;;
+            -nolegend     | --nolegend     ) USE_LEGEND=0 ;;
+            -terminal     | --terminal     ) IS_TERMINAL=1 ;;
+            -noterminal   | --noterminal   ) IS_TERMINAL=0 ;;
 
-			-awkbin  | --awkbin  ) AWK_BIN="$2"  ; shift ;;
-			-pingbin | --pingbin ) PING_BIN="$2" ; shift ;;
-			-6 ) PING_BIN="ping6" ;;
+            -awkbin  | --awkbin  ) AWK_BIN="$2"  ; shift ;;
+            -pingbin | --pingbin ) PING_BIN="$2" ; shift ;;
+            -6 ) PING_BIN="ping6" ;;
 
-			#TODO: Check if these parameters are numbers.
-			-last    | --last    ) LAST_N="$2"           ; shift ;;
-			-columns | --columns ) OVERRIDE_COLUMNS="$2" ; shift ;;
-			-lines   | --lines   ) OVERRIDE_LINES="$2"   ; shift ;;
-			-rttmin  | --rttmin  ) RTT_MIN="$2"          ; shift ;;
-			-rttmax  | --rttmax  ) RTT_MAX="$2"          ; shift ;;
+                #TODO: Check if these parameters are numbers.
+            -last    | --last    ) LAST_N="$2"           ; shift ;;
+            -columns | --columns ) OVERRIDE_COLUMNS="$2" ; shift ;;
+            -lines   | --lines   ) OVERRIDE_LINES="$2"   ; shift ;;
+            -rttmin  | --rttmin  ) RTT_MIN="$2"          ; shift ;;
+            -rttmax  | --rttmax  ) RTT_MAX="$2"          ; shift ;;
 
-			* )
-				PING_PARAMS+=("$1")
-				;;
-		esac
-		shift
-	done
+            * )
+                PING_PARAMS+=("$1")
+                ;;
+        esac
+        shift
+    done
 
-	if [[ "${RTT_MIN}" -gt 0 && "${RTT_MAX}" -gt 0 && "${RTT_MIN}" -ge "${RTT_MAX}" ]] ; then
-		echo "${MYNAME}: Invalid --rttmin and -rttmax values."
-		exit 1
-	fi
+    if [[ "${RTT_MIN}" -gt 0 && "${RTT_MAX}" -gt 0 && "${RTT_MIN}" -ge "${RTT_MAX}" ]] ; then
+        echo "${MYNAME}: Invalid --rttmin and -rttmax values."
+        exit 1
+    fi
 
-	if [[ "${#PING_PARAMS[@]}" = 0 ]] ; then
-		echo "${MYNAME}: Missing parameters, use --help for instructions."
-		exit 1
-	fi
+    if [[ "${#PING_PARAMS[@]}" = 0 ]] ; then
+        echo "${MYNAME}: Missing parameters, use --help for instructions."
+        exit 1
+    fi
 
-	# Workaround for mawk:
-	# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=593504
-	local version="$(echo | "${AWK_BIN}" -W version 2>&1)"
-	if [[ "${version}" == mawk* ]] ; then
-		AWK_PARAMS+=(-W interactive)
-	fi
+    # Workaround for mawk:
+    # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=593504
+    local version="$(echo | "${AWK_BIN}" -W version 2>&1)"
+    if [[ "${version}" == mawk* ]] ; then
+        AWK_PARAMS+=(-W interactive)
+    fi
 }
 
 MYNAME=`basename "$0"`
@@ -216,24 +216,24 @@ trap '' 2
 
 # Now the ugly code.
 (
-	"${PING_BIN}" "${PING_PARAMS[@]}" &
-	PING_PID="$!"
+    "${PING_BIN}" "${PING_PARAMS[@]}" &
+    PING_PID="$!"
 
-	# Commented out, because it looks like this line is not needed
-	#trap "kill -2 $PING_PID ; exit 1" 2  # Catch Ctrl+C here
+    # Commented out, because it looks like this line is not needed
+    #trap "kill -2 $PING_PID ; exit 1" 2  # Catch Ctrl+C here
 
-	wait
-) 2>&1 | (
-	if [ "${IS_TERMINAL}" = 1 ]; then
-		# Print a message to notify the awk script about terminal size change.
-		trap "echo SIGWINCH" 28
-	fi
+    wait
+    ) 2>&1 | (
+    if [ "${IS_TERMINAL}" = 1 ]; then
+        # Print a message to notify the awk script about terminal size change.
+        trap "echo SIGWINCH" 28
+    fi
 
-	# The trap must be in another subshell because otherwise it will interrupt
-	# the "wait" command.
-	while read line; do
-		echo -E "$line"
-	done
+    # The trap must be in another subshell because otherwise it will interrupt
+    # the "wait" command.
+    while read line; do
+        echo -E "$line"
+    done
 ) 2>&1 | "${AWK_BIN}" "${AWK_PARAMS[@]}" '
 # Weird that awk does not come with abs(), so I need to implement it.
 function abs(x) {
@@ -778,7 +778,7 @@ BEGIN {
 		print_statistics_bar_if_terminal()
 	} else if ( $0 ~ /^.*onnected to.*, seq=[0-9]+ time=[0-9.]+ *ms/ ) {
 		# Sample line from httping:
-		# connected to 200.149.119.168:80 (273 bytes), seq=0 time=129.86 ms 
+		# connected to 200.149.119.168:80 (273 bytes), seq=0 time=129.86 ms
 		if ( other_line_times >= 2 ) {
 			other_line_finished_repeating()
 		}

@@ -4,12 +4,12 @@ This is a collection of scripts that I have written to achieve some simple tasks
 
 ## Getting Started
 
-All shell scripts aim to be POSIX compliant, but are written in ZSH and will thus work best in this environment.  
+All shell scripts aim to be POSIX compliant, but are written in ZSH and will thus work best in this environment.
 All Python scripts are written for Python 3.6+.
 
 ## Installing
 
-All scripts should be able to run in isolation.  
+All scripts should be able to run in isolation.
 e.g.
 
 ```bash

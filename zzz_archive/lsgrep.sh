@@ -15,9 +15,9 @@ if [ "$#" -eq "1" ]; then
     select opt in ${arr[@]}; do
         xdg-open $opt> /dev/null 2>&1; break
     done
-# If only one argument set path to search in as $HOME
-# If there is a plus symbol in the search term replace it with the regex .*
-# Present found to user and let choose
+    # If only one argument set path to search in as $HOME
+    # If there is a plus symbol in the search term replace it with the regex .*
+    # Present found to user and let choose
 
 else
     if [[ "$2" =$HOME "\+" ]];then

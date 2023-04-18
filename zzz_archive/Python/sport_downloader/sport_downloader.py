@@ -14,9 +14,7 @@ import httplib2
 import lxml.html
 import oauth2client.client
 import requests
-from apiclient import discovery
-from apiclient import errors
-from apiclient import http
+from apiclient import discovery, errors, http
 from apiclient.http import MediaFileUpload
 from bs4 import BeautifulSoup
 from oauth2client.client import flow_from_clientsecrets
@@ -124,7 +122,7 @@ game_wanted = game_wanted.strftime("%Y.%m.%d")
 # We now have a dt value in the form %yyy.%mm.%dd for the game played in the previous 48 hours
 
 pastebin_download_url = search_dl(dl, game_wanted)
-pastebin_download_url = "http://pastebin.com{0}".format(pastebin_download_url)
+pastebin_download_url = f"http://pastebin.com{pastebin_download_url}"
 
 if pastebin_download_url == "http://pastebin.comNone":
     sys.exit(0)
@@ -150,7 +148,7 @@ f = open(
     "/home/wynand/Desktop/Python Programs/Sport Downloader/Download Links.txt", "w"
 )
 for t in download_links:
-    f.write("\ntext={0}\nautoStart=TRUE\n".format(t))
+    f.write(f"\ntext={t}\nautoStart=TRUE\n")
 f.close()
 
 # We now have a .txt file that we can convert to a .crawljob

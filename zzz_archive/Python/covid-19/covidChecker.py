@@ -1,9 +1,9 @@
 #!/bin/python
-'''Checks daily Covid-19 stats for the area and attempts to give context where needed
-'''
+"""Checks daily Covid-19 stats for the area and attempts to give context where needed
+"""
 
-import requests
 import matplotlib.pyplot as plt
+import requests
 
 COUNTRY = "Australia"
 PROVINCE = "Western Australia"

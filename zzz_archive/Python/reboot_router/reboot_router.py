@@ -1,4 +1,5 @@
 import urllib.request
+
 from bs4 import BeautifulSoup
 
 url = "http://192.168.0.1/html/reboot.html"

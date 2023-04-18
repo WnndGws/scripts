@@ -1,23 +1,24 @@
 #!/usr/bin/python3
-'''Written to add calendar events from the cli
-    TODO: add a list-calendars option'''
+"""Written to add calendar events from the cli
+    TODO: add a list-calendars option"""
 
-import os
 import datetime
+import os
 import sys
-import httplib2
+
 import click
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage
+import httplib2
 from apiclient import discovery
+from oauth2client import client, tools
+from oauth2client.file import Storage
 from pytz import timezone
+
 
 class EndOption(click.Option):
     def get_default(self, ctx):
         default = super().get_default(ctx)
         if default is None:
-            default = ctx.params['start'] + datetime.timedelta(hours=1)
+            default = ctx.params["start"] + datetime.timedelta(hours=1)
         return default
 
 
@@ -59,16 +60,17 @@ HTTP = CREDENTIALS.authorize(httplib2.Http())
 SERVICE = discovery.build("calendar", "v3", http=HTTP)
 PAGE_TOKEN = None
 
+
 def validate_calendar(calendar):
-    '''Function to check if input calendar string is a calendar the api has access to'''
+    """Function to check if input calendar string is a calendar the api has access to"""
 
     calendar_id = None
 
     calendar_list = SERVICE.calendarList().list(pageToken=PAGE_TOKEN).execute()
 
-    for calendar_list_entry in calendar_list['items']:
-        if calendar in calendar_list_entry['summary']:
-            calendar_id = calendar_list_entry['id']
+    for calendar_list_entry in calendar_list["items"]:
+        if calendar in calendar_list_entry["summary"]:
+            calendar_id = calendar_list_entry["id"]
 
     if calendar_id is None:
         print("No calendar found with that name. Names are case sensitive")
@@ -76,91 +78,86 @@ def validate_calendar(calendar):
     else:
         return calendar_id
 
-def print_calendars(ctx, param, value):
-    '''Function to print all available calendars'''
 
-    #Check if value is passed in, otherwise will always run
+def print_calendars(ctx, param, value):
+    """Function to print all available calendars"""
+
+    # Check if value is passed in, otherwise will always run
     if not value or ctx.resilient_parsing:
         return
 
-    #Actual print function
+    # Actual print function
     calendar_list = SERVICE.calendarList().list(pageToken=PAGE_TOKEN).execute()
-    for calendar_list_entry in calendar_list['items']:
+    for calendar_list_entry in calendar_list["items"]:
         print(calendar_list_entry["summary"])
     sys.exit(0)
 
+
 @click.command()
 @click.option(
-    '--print-calendars',
+    "--print-calendars",
     is_flag=True,
     callback=print_calendars,
     expose_value=False,
-    is_eager=True
+    is_eager=True,
 )
 @click.option(
-    '--calendar',
+    "--calendar",
     prompt=True,
-    default='Personal',
+    default="Personal",
     required=True,
-    help='The name of the calendar you want to ad events to (Default: Personal Calendar)'
+    help="The name of the calendar you want to ad events to (Default: Personal Calendar)",
 )
 @click.option(
-    '--title',
-    prompt=True,
-    required=True,
-    help='The title of the event you want to add'
+    "--title", prompt=True, required=True, help="The title of the event you want to add"
 )
 @click.option(
-    '--location',
-    prompt=True,
-    required=True,
-    help='The location of the event'
+    "--location", prompt=True, required=True, help="The location of the event"
 )
 @click.option(
-    '--description',
+    "--description",
     prompt=True,
     required=True,
-    help='The description of the event [Default: Event title]'
+    help="The description of the event [Default: Event title]",
 )
 @click.option(
-    '--start',
+    "--start",
     prompt=True,
-    type=click.DateTime(formats=['%Y-%m-%d %H:%M']),
+    type=click.DateTime(formats=["%Y-%m-%d %H:%M"]),
     required=True,
     default=datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M"),
-    help='Start time of event in format "%Y-%m-%d %H:%M" [Default: Now]'
+    help='Start time of event in format "%Y-%m-%d %H:%M" [Default: Now]',
 )
 @click.option(
-    '--end',
+    "--end",
     cls=EndOption,
     prompt=True,
-    type=click.DateTime(formats=['%Y-%m-%d %H:%M']),
+    type=click.DateTime(formats=["%Y-%m-%d %H:%M"]),
     required=True,
-    help='End time of event in format "%Y-%m-%d %H:%M" [Default: Now + 1hr]'
+    help='End time of event in format "%Y-%m-%d %H:%M" [Default: Now + 1hr]',
 )
 def calcadd(calendar, title, location, description, start, end):
     cal_id = validate_calendar(calendar)
     event_add = {}
 
-    time_zone = timezone('Australia/Perth')
+    time_zone = timezone("Australia/Perth")
     start = time_zone.localize(start)
-    start = datetime.datetime.strftime(start, '%Y-%m-%dT%H:%M:00%z')
+    start = datetime.datetime.strftime(start, "%Y-%m-%dT%H:%M:00%z")
     end = time_zone.localize(end)
-    end = datetime.datetime.strftime(end, '%Y-%m-%dT%H:%M:00%z')
+    end = datetime.datetime.strftime(end, "%Y-%m-%dT%H:%M:00%z")
 
-    event_add['summary'] = title
-    event_add['location'] = location
-    event_add['description'] = description
-    event_add['start'] = {"dateTime": start}
-    event_add['end'] = {"dateTime": end}
+    event_add["summary"] = title
+    event_add["location"] = location
+    event_add["description"] = description
+    event_add["start"] = {"dateTime": start}
+    event_add["end"] = {"dateTime": end}
 
-    #breakpoint()
+    # breakpoint()
 
-    SERVICE.events().insert(
-        calendarId=cal_id,
-        body=event_add).execute()
+    SERVICE.events().insert(calendarId=cal_id, body=event_add).execute()
 
     print(f"Adding {title} to calendar.....")
+
 
 if __name__ == "__main__":
     calcadd()

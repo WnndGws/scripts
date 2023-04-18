@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Example of using bisection method to solve for roots of a continuous function.
 
@@ -99,11 +98,11 @@ def main():
         x = xmid
         fxmid = eval(code)
         if fxmid < tol:
-            print("Trying x={0}....".format(x))
-            print("y={0}".format(fxmid))
-            print("x={0} is one of the roots!".format(x))
+            print(f"Trying x={x}....")
+            print(f"y={fxmid}")
+            print(f"x={x} is one of the roots!")
             roots.append(x)
-            print("Roots = {0}".format(roots))
+            print(f"Roots = {roots}")
             n = n + 100000
             break
         elif fxmid * fa > 0.0:

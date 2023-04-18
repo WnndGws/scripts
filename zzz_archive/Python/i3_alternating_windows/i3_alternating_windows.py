@@ -1,18 +1,18 @@
 #!/bin/python
 """Run a python script to alternate the order of opening my i3 windows"""
 
+import getopt
+import os
 import re
 import subprocess
-import getopt
 import sys
-import os
 
 import i3ipc
 
 
 def find_parent(window_id):
     """
-        Find the parent of a given window id
+    Find the parent of a given window id
     """
     root_window = i3.get_tree()
     result = [None]
@@ -33,9 +33,9 @@ def find_parent(window_id):
 
 def set_layout():
     """
-        Set the layout/split for the currently
-        focused window to either vertical or
-        horizontal, depending on its width/height
+    Set the layout/split for the currently
+    focused window to either vertical or
+    horizontal, depending on its width/height
     """
     current_win = i3ipc.filter(nodes=[], focused=True)
     for win in current_win:
@@ -70,9 +70,9 @@ def print_help():
 
 def main():
     """
-        Main function - listen for window focus
-        changes and call set_layout when focus
-        changes
+    Main function - listen for window focus
+    changes and call set_layout when focus
+    changes
     """
     opt_list, args = getopt.getopt(sys.argv[1:], "hp:")
     pid_file = None

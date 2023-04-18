@@ -1,8 +1,9 @@
 #!/usr/bin/python
 ### Resizes all mpv videos to small windows
 
-import i3ipc
 import re
+
+import i3ipc
 
 # Create the Connection object that can be used to send commands and subscribe
 # to events.

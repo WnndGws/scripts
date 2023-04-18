@@ -9,7 +9,7 @@ while /bin/true; do
     if [ "$ip" -eq 0 ]; then
         set -a
         source <(gpg -qd $HOME/.passwords.asc)
-        set +a        
+        set +a
         echo -e "$1 is home" | mailx -v -s "Home Report" -S smtp-use-starttls -S ssl-verify=ignore -S smtp-auth=login -S mta=smtp://smtp.gmail.com:587 -S from="$GMAIL" -S smtp-auth-user=$GMAIL -S smtp-auth-password=$GMAIL_PASSPHRASE -S ssl-verify=ignore -S nss-config-dir=$HOME/.cert $GMAIL
         unset GMAIL
         unset GMAIL_PASSPHRASE
@@ -17,7 +17,7 @@ while /bin/true; do
         # If exit code is 0 then ping worked, ie home
 
         for n in {1..4}; do
-        ip=0
+            ip=0
             while [[ -z "$ip" ]]; do
                 sleep 300
                 ip=$(nmap $1 | grep "Host is up")
@@ -27,7 +27,7 @@ while /bin/true; do
 
         set -a
         source <(gpg -qd $HOME/.passwords.asc)
-        set +a        
+        set +a
         echo -e "$1 has left home" | mailx -v -s "Home Report" -S smtp-use-starttls -S ssl-verify=ignore -S smtp-auth=login -S mta=smtp://smtp.gmail.com:587 -S from="$GMAIL" -S smtp-auth-user=$GMAIL -S smtp-auth-password=$GMAIL_PASSPHRASE -S ssl-verify=ignore -S nss-config-dir=$HOME/.cert $GMAIL
         unset GMAIL
         unset GMAIL_PASSPHRASE

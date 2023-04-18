@@ -4,7 +4,7 @@
 
 import nltk
 
-with open("/tmp/para.txt", "r") as f:
+with open("/tmp/para.txt") as f:
     text = f.read()
     f.close()
 

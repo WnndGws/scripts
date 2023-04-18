@@ -33,6 +33,7 @@ import sys
 
 files = sys.argv[1:]
 
+
 # this is the same method mpv uses to decide this
 def is_url(filename):
     parts = filename.split("://", 1)
@@ -59,7 +60,7 @@ sock = None
 try:
     sock = socket.socket(socket.AF_UNIX)
     sock.connect(SOCK)
-except socket.error as e:
+except OSError as e:
     if e.errno == errno.ECONNREFUSED:
         sock = None
         pass  # abandoned socket

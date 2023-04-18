@@ -4,15 +4,16 @@
 ## TODO: Handle events without description/location etc
 
 import calendar
-import httplib2
-import os
-from apiclient import discovery
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage
 import datetime
-from dateutil.parser import parse
+import os
+
 import click
+import httplib2
+from apiclient import discovery
+from dateutil.parser import parse
+from oauth2client import client, tools
+from oauth2client.file import Storage
+
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -34,7 +35,9 @@ def get_credentials():
     credential_dir = os.path.join(home_dir, ".config/credentials")
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir, "calendar_reminder_saved_credentials.json")
+    credential_path = os.path.join(
+        credential_dir, "calendar_reminder_saved_credentials.json"
+    )
     CLIENT_SECRET_FILE = os.path.join(credential_dir, CLIENT_SECRET_FILE)
 
     store = Storage(credential_path)
@@ -45,6 +48,7 @@ def get_credentials():
         credentials = tools.run_flow(flow, store, flags)
         print("Storing credentials to " + credential_path)
     return credentials
+
 
 def add_months(sourcedate, months):
     """Takes a sourcedate and adds months to it, outputting datetime"""
@@ -82,6 +86,7 @@ def add_months(sourcedate, months):
     day = min(sourcedate.day, calendar.monthrange(year, month)[1])
     return datetime.date(year, month, day)
 
+
 @click.command()
 @click.option(
     "--start",
@@ -93,7 +98,11 @@ def add_months(sourcedate, months):
 )
 @click.option("--verbose", is_flag=True, help="Will print out the results")
 @click.option("--add-to-calendar", is_flag=True, help="Add results to your calendar")
-@click.option("--source-calendar-url", help="The URL to the calendar to check. In the form 'aaaaaaaaaaaaa@group.calendar.google.com'", prompt=True)
+@click.option(
+    "--source-calendar-url",
+    help="The URL to the calendar to check. In the form 'aaaaaaaaaaaaa@group.calendar.google.com'",
+    prompt=True,
+)
 def main(start, months, verbose, add_to_calendar, source_calendar_url):
     """Scrapes source calendar and adds reminders to calendar to watch sport that occurred overnight"""
 
@@ -121,7 +130,7 @@ def main(start, months, verbose, add_to_calendar, source_calendar_url):
     if verbose:
         for event in events:
             eventTitle = event["summary"]
-            click.echo(f'{eventTitle}')
+            click.echo(f"{eventTitle}")
 
     if add_to_calendar:
         for event in events:
@@ -130,12 +139,18 @@ def main(start, months, verbose, add_to_calendar, source_calendar_url):
                 reminderEvent[item] = event[item]
 
             reminderEvent["summary"] = f'REMINDER: {event["summary"]}'
-            reminderEvent["start"] = {"dateTime": f'{datetime.datetime.strftime(parse(event["end"]["dateTime"]) + datetime.timedelta(days=0), "%Y-%m-%dT19:00:00%z")}'}
-            reminderEvent["end"] = {"dateTime": f'{datetime.datetime.strftime(parse(event["end"]["dateTime"]) + datetime.timedelta(days=0), "%Y-%m-%dT20:00:00%z")}'}
+            reminderEvent["start"] = {
+                "dateTime": f'{datetime.datetime.strftime(parse(event["end"]["dateTime"]) + datetime.timedelta(days=0), "%Y-%m-%dT19:00:00%z")}'
+            }
+            reminderEvent["end"] = {
+                "dateTime": f'{datetime.datetime.strftime(parse(event["end"]["dateTime"]) + datetime.timedelta(days=0), "%Y-%m-%dT20:00:00%z")}'
+            }
             service.events().insert(
                 calendarId="ucuu438np9dss601ueh11d2vp4@group.calendar.google.com",
-                body=reminderEvent).execute()
+                body=reminderEvent,
+            ).execute()
             click.echo(f"Adding {reminderEvent['summary']} to calendar......")
+
 
 if __name__ == "__main__":
     main()

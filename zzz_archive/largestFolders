@@ -4,13 +4,13 @@
 pat="./$1"
 shift
 if [ "$#" = "0" ]; then
-  set "."
+    set "."
 fi
 find $pat -maxdepth 1 -type d -print0 |
-    xargs -I{} -0 du --max-depth=0 "{}" |
-    sort -rn |
-    head -n 11 |
-    tail -n +2 |
-    cut -f2 |
-    sed "s/'/\\\'/" |
-    xargs -I{} ncdu --color dark -rr -x -f - {}
+xargs -I{} -0 du --max-depth=0 "{}" |
+sort -rn |
+head -n 11 |
+tail -n +2 |
+cut -f2 |
+sed "s/'/\\\'/" |
+xargs -I{} ncdu --color dark -rr -x -f - {}

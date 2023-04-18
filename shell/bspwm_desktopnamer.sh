@@ -4,7 +4,7 @@
 # Define icons
 icon_list="
 Alacritty 
-whatsapp-nativefier-d40211 
+whatsie 
 MozillaFirefox 
 NVim 
 MPV 
@@ -17,7 +17,7 @@ Pidgin 
 Feh 﨤
 Steam 
 Minecraft 
-1.17.1 
+obsidian 
 "
 
 #bspc subscribe node_add node_remove desktop_transfer | while read -r _; do

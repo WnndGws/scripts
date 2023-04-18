@@ -4,9 +4,10 @@
 import datetime
 import os
 import re
-import requests
 import subprocess
 import time
+
+import requests
 
 ## Set file name and path
 user_home = os.path.expanduser("~/")

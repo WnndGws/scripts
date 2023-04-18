@@ -8,29 +8,31 @@ import subprocess
 
 ## ENTER THE CLASSNAME FROM `bspc query --tree` IN LOWERCASE
 icons_dict = {
-    "alacritty": str(""),
-    "firefox": str(""),
-    "mpv": str(""),
-    "signal": str(""),
-    "pidgin": str(""),
-    "tor browser": str("﨩"),
-    "jftui": str("ﴽ"),
-    "steam": str(""),
-    "newsboat": str(""),
-    "zathura": str(""),
-    "neomutt": str(""),
+    "alacritty": "",
+    "firefox": "",
+    "mpv": "",
+    "signal": "",
+    "pidgin": "",
+    "tor browser": "﨩",
+    "jftui": "ﴽ",
+    "steam": "",
+    "newsboat": "",
+    "zathura": "",
+    "neomutt": "",
 }
 
 # Edit this with info from bspc query --desktops
 # Determine desktop names
-desktops = subprocess.Popen("bspc query --desktops", stdout=subprocess.PIPE, shell=True).communicate()
+desktops = subprocess.Popen(
+    "bspc query --desktops", stdout=subprocess.PIPE, shell=True
+).communicate()
 desktops = desktops[0]
-desktops = desktops.split(b'\n')
+desktops = desktops.split(b"\n")
 desktops.pop(-1)
 desktops_dict = {}
 n = 1
 for element in desktops:
-    desktops_dict.update({element.decode('utf-8'):str(n)})
+    desktops_dict.update({element.decode("utf-8"): str(n)})
     n += 1
 
 
@@ -76,7 +78,7 @@ def rename_all_desktops(desktops):
     """Loops over desktops and renames all"""
     desktop_list = []
     for element in desktops:
-        desktop_list.append(element.decode('utf-8'))
+        desktop_list.append(element.decode("utf-8"))
     for desktop in desktop_list:
         set_desktop_name(desktop)
 

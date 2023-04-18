@@ -24,6 +24,6 @@ new_pw = "".join(new_pw)
 new_pw = new_pw[-5:]
 
 if now_date.weekday() == 4:
-    print("New password: {0}".format(new_pw))
+    print(f"New password: {new_pw}")
 else:
     print("Not yet nigga")

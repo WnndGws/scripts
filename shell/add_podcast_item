@@ -4,9 +4,9 @@
 while getopts f:u:l: flag
 do
     case "${flag}" in
-        f) file=${OPTARG};;
-        u) url=${OPTARG};;
-	l) input=${OPTARG};;
+        f) file=${OPTARG} ;;
+        u) url=${OPTARG} ;;
+        l) input=${OPTARG} ;;
     esac
 done
 

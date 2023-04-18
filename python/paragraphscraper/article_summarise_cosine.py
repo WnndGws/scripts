@@ -12,15 +12,16 @@ $ sudo mv nltk_data /usr/share
 """
 
 import click
-from nltk.corpus import stopwords
-from nltk.cluster.util import cosine_distance
-import numpy as np
 import networkx as nx
+import numpy as np
+from nltk.cluster.util import cosine_distance
+from nltk.corpus import stopwords
+
 
 def read_article(file_name):
-    """ Generates clean sentences"""
+    """Generates clean sentences"""
     sentences = []
-    with open(file_name, "r") as file:
+    with open(file_name) as file:
         filedata = file.readlines()
 
     for entry in filedata:
@@ -33,8 +34,9 @@ def read_article(file_name):
 
     return sentences
 
+
 def sentence_similarity(sent1, sent2, stopwords=None):
-    """ Use Cosine similarity between two vectors to see how similar they are"""
+    """Use Cosine similarity between two vectors to see how similar they are"""
     if stopwords is None:
         stopwords = []
 
@@ -60,17 +62,21 @@ def sentence_similarity(sent1, sent2, stopwords=None):
 
     return 1 - cosine_distance(vector1, vector2)
 
+
 def build_similarity_matrix(sentences, stop_words):
-    """ Create an empty similarity matrix """
+    """Create an empty similarity matrix"""
     similarity_matrix = np.zeros((len(sentences), len(sentences)))
 
     for idx1 in range(len(sentences)):
         for idx2 in range(len(sentences)):
-            if idx1 == idx2: #ignore if both are same sentences
+            if idx1 == idx2:  # ignore if both are same sentences
                 continue
-            similarity_matrix[idx1][idx2] = sentence_similarity(sentences[idx1], sentences[idx2], stop_words)
+            similarity_matrix[idx1][idx2] = sentence_similarity(
+                sentences[idx1], sentences[idx2], stop_words
+            )
 
     return similarity_matrix
+
 
 @click.command()
 @click.option(
@@ -94,45 +100,48 @@ def build_similarity_matrix(sentences, stop_words):
     help="Shows the sentence befroe and after the important one",
 )
 def generate_summary(file_name, top_n, context):
-    """ Summarises file_name into 5 sentences """
-    stop_words = stopwords.words('english')
+    """Summarises file_name into 5 sentences"""
+    stop_words = stopwords.words("english")
     summarize_text = []
 
     # Step 1 - Read text anc split it
     sentences = read_article(file_name)
-    #print(sentences)
+    # print(sentences)
 
     # Step 2 - Generate Similary Martix across sentences
     sentence_similarity_martix = build_similarity_matrix(sentences, stop_words)
-    #print(sentence_similarity_martix)
+    # print(sentence_similarity_martix)
 
     # Step 3 - Rank sentences in similarity martix
     sentence_similarity_graph = nx.from_numpy_array(sentence_similarity_martix)
     scores = nx.pagerank(sentence_similarity_graph)
 
     # Step 4 - Sort the rank and pick top sentences
-    ranked_sentence = sorted(((scores[i], s) for i, s in enumerate(sentences)), reverse=True)
-    #print("Indexes of top ranked_sentence order are ", ranked_sentence)
+    ranked_sentence = sorted(
+        ((scores[i], s) for i, s in enumerate(sentences)), reverse=True
+    )
+    # print("Indexes of top ranked_sentence order are ", ranked_sentence)
 
     for i in range(top_n):
         sentence_index = sentences.index(ranked_sentence[i][1])
-        #Pads number to 4 digits
+        # Pads number to 4 digits
         if context:
-            summary_string = f'{sentence_index:04}: {sentences[sentence_index - 1]}. {sentences[sentence_index]}. {sentences[sentence_index + 1]}'
+            summary_string = f"{sentence_index:04}: {sentences[sentence_index - 1]}. {sentences[sentence_index]}. {sentences[sentence_index + 1]}"
         else:
-            summary_string = f'{sentence_index:04}: {sentences[sentence_index]}'
+            summary_string = f"{sentence_index:04}: {sentences[sentence_index]}"
         summarize_text.append(summary_string)
 
     # Step 5 - Offcourse, output the summarize texr
     summarize_text.sort()
-    #Now have the most important sentences, in the order they appeared
+    # Now have the most important sentences, in the order they appeared
     final_list = []
     for i in summarize_text:
         final_summary = ""
         final_summary = final_summary.join(i.split(": ")[1])
         final_list.append(final_summary)
     print(f'Summary:\n{". ".join(final_list)}')
-    #print(f'Summary:\n{final_summary}')
+    # print(f'Summary:\n{final_summary}')
+
 
 if __name__ == "__main__":
     generate_summary()

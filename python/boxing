@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-'''Script made to check when there is a middleweight+ title fight, or when 'the ring' top 10 fight
-'''
+"""Script made to check when there is a middleweight+ title fight, or when 'the ring' top 10 fight
+"""
+
+import calendar
+import datetime
 
 # Standard imports
 import os
-import datetime
-import calendar
 import re
 import urllib
+
+import bs4
+import click
 import httplib2
-from unidecode import unidecode
 
 # 3rd Party imports
 from apiclient import discovery
-import bs4
-import click
-from oauth2client import client
-from oauth2client import tools
+from oauth2client import client, tools
 from oauth2client.file import Storage
+from unidecode import unidecode
 
 
 def get_credentials():
@@ -51,6 +52,7 @@ def get_credentials():
         credentials = tools.run_flow(flow, store, flags)
         print("Storing credentials to " + credential_path)
     return credentials
+
 
 def scrape_wikitables():
     """Scrapes wikipedia for the list of current top boxers"""
@@ -118,8 +120,7 @@ def add_months(sourcedate, months):
 
 
 def scrape_sunday_puncher(start, months):
-    """Scrapes the Sunday puncher public calender to see whats coming
-    """
+    """Scrapes the Sunday puncher public calender to see whats coming"""
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build("calendar", "v3", http=http)
@@ -131,7 +132,7 @@ def scrape_sunday_puncher(start, months):
     eventsResult = (
         service.events()
         .list(
-            calendarId="iumovuptqivl8kn9a4krhvttbo@group.calendar.google.com", #Sunday puncher's public calendar
+            calendarId="iumovuptqivl8kn9a4krhvttbo@group.calendar.google.com",  # Sunday puncher's public calendar
             timeMin=start,
             timeMax=end,
             singleEvents=True,

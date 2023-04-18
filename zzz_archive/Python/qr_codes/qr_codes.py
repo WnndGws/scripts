@@ -9,7 +9,7 @@ createdCodes = []
 
 while pageNumber < 11:
     pageNumber += 1
-    fileNumber = "{0} - Year{1} - Page{2}".format(subject, yearLevel, pageNumber)
+    fileNumber = f"{subject} - Year{yearLevel} - Page{pageNumber}"
     qr = QRCode(version=1, error_correction=ERROR_CORRECT_H)
     qr.add_data(fileNumber)
     qr.make()  # Generate the QRCode itself
