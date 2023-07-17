@@ -2,7 +2,12 @@
 
 while true; do
   batterybrightness
-  pgrep sxhkd || (sxhkd & disown)
   xmodmap ~/.config/xmodmap/Xmodmap
-  sleep 300
+  if pgrep lemonbar && pgrep sxhkd; then
+    echo "Pass"
+    sleep 60
+  else
+    zsh ~/.config/bspwm/bspwmrc &!
+    sleep 300
+  fi
 done

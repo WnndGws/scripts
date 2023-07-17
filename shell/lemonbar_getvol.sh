@@ -13,7 +13,7 @@ getCurMic() { mic_volume=$(pactl list sources | rg -A8 "RUNNING" | rg --only-mat
 getCurVol() { volume=$(pamixer --get-volume-human)
     if [ "$volume" = "muted" ]; then
         leader="Vm"
-        icon="ﱝ"
+        icon="󰝟"
         volume=0
     else
         # If not text, then want number

@@ -6,7 +6,7 @@
 
 ignore_list="(^$(rg "^Ignore.*" /etc/pacman.conf | sed -e 's/^.*= //' -e 's/ /$)|(^/g')$)"
 
-while true; do
+check_pkg() {
     sudo pikaur -Sy > /dev/null 2>&1
 
     pac=$(pacman -Qqu | rg --invert-match --count "$ignore_list")
@@ -24,6 +24,6 @@ while true; do
         echo "PH$pac  $aur"
 
     fi
+}
 
-    sleep 360000
-done
+check_pkg

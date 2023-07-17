@@ -5,6 +5,5 @@
 tmux new-session -d -s convert
 tmux new-session -d -s syncplay
 tmux new-session -d -s fast_api
-tmux new-session -d -s encoder_logging
 tmux new-session -d -s podsync
-tmux new-session -d -s mumble
+tmux new-session -d -s reddit_rss

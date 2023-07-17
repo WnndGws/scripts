@@ -13,11 +13,9 @@ Newsboat 
 Zathura 
 Neomutt 﫮
 SignalBeta 
-Pidgin 
 Feh 﨤
-Steam 
-Minecraft 
-obsidian 
+taskell 
+mullvadbrowser M
 "
 
 #bspc subscribe node_add node_remove desktop_transfer | while read -r _; do
