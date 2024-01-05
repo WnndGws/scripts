@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+httplib2 = "*"
+apiclient = "*"
+oauth2client = "*"
+google-api-python-client = "*"
+pytz = "*"
+regex = "*"
+requests-html = "*"
+inquirerpy = "*"
+rich = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
