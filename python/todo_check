@@ -2,11 +2,12 @@
 """Written to replace the next_event2.
 Checks Google Calendar for next event and displays it nicely.
 """
+
 import datetime
 import os
-import re
 import sys
 
+import dateutil
 import httplib2
 from apiclient import discovery
 from oauth2client import client, tools
@@ -80,7 +81,7 @@ def add_events():
     tomorrow = tomorrow.isoformat()
 
     # Needed to change times to non-naive
-    location = "Australia/Perth"
+    location = "Australia/Sydney"
     tz = timezone(location)
     page_token = None
 
@@ -108,7 +109,12 @@ def add_events():
     for event in event_list:
         try:
             if event["start"]["dateTime"][:10] == today:
-                print(f'[ ] {event["summary"]}')
+                print_time = (
+                    dateutil.parser.parse(event["start"]["dateTime"])
+                    .astimezone(timezone("Australia/Sydney"))
+                    .strftime("%H:%M")
+                )
+                print(f'[ ] {print_time} - {event["summary"]}')
         except KeyError:
             pass
 

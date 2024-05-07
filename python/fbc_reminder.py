@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-"""
-Reminde me each day about my FBC startups
-"""
+"""Reminde me each day about my FBC startups"""
 
 import datetime
 import logging
 import sys
+
 sys.path.insert(0, "/home/wynand/git/neoFrogBox")
 
 import os.path
 
-import check_date_range
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+import check_date_range
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -32,14 +31,8 @@ def find_times():
     times = []
     streams = check_date_range.get_fbc_streams(
         datetime.datetime.utcnow(),
-        datetime.datetime.utcnow(),
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
+        datetime.datetime.utcnow() + datetime.timedelta(days=1),
+        True,
         False,
     )
     for stream in streams:
@@ -48,9 +41,7 @@ def find_times():
         times.append(time)
 
     for time in set(times):
-        add_to_calendar(
-            time - datetime.timedelta(hours=1), time - datetime.timedelta(minutes=30)
-        )
+        add_to_calendar(time - datetime.timedelta(minutes=30), time)
 
 
 def add_to_calendar(start, end):

@@ -13,6 +13,10 @@ regex = "*"
 requests-html = "*"
 inquirerpy = "*"
 rich = "*"
+google-auth-oauthlib = "*"
+click = "*"
+lxml-html-clean = "*"
+python-dateutil = "*"
 
 [dev-packages]
 
