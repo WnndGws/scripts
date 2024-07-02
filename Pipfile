@@ -17,6 +17,7 @@ google-auth-oauthlib = "*"
 click = "*"
 lxml-html-clean = "*"
 python-dateutil = "*"
+libtmux = "*"
 
 [dev-packages]
 
