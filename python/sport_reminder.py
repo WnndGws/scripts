@@ -1,163 +1,102 @@
-#!/usr/bin/python3
-## A python script to add events to my calendar to remind me to watch sport that happened overnight
+#!/usr/bin/env python
+# Remind me about sport over night.
 
-## TODO: Handle events without description/location etc
+"""Useful modules:
+* "addict" for dictionaries
+* "alive-progress" for progress bars
+* "arrow" for datetime
+* "birdseye" for debugging
+* "decorator" for humans
+* "httpx" for requests
+* "plumbum" for shell commands
+* "questionary" for user prompts
+* "tanacity" for retries
+* "ultrajson" for json
+* anybadge
+* click
+* configparser
+* humanise
+* loguru
+* pathlib
+* regex
+* rich
+* schedule
+* thefuzz
+* tinydb
+"""
 
-import calendar
 import datetime
-import os
+from pathlib import Path
 
-import click
-import httplib2
-from apiclient import discovery
-from dateutil.parser import parse
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+# If modifying these scopes, delete the file token.json.
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
-def get_credentials():
-    """Gets valid user credentials from storage.
+creds_path = f"{Path.home()}/.cache/credentials"
 
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
 
-    Returns:
-        Credentials, the obtained credential.
+def check_calendar(url):
+    """Shows basic usage of the Google Calendar API.
+    Prints the start and name of the next 10 events on the user's calendar.
     """
-
-    # If modifying these scopes, delete your previously saved credentials
-    SCOPES = "https://www.googleapis.com/auth/calendar"
-    CLIENT_SECRET_FILE = "calendar_reminder_client_secrets.json"
-    APPLICATION_NAME = "Sport_Reminder"
-    flags = None
-
-    home_dir = os.path.expanduser("~")
-    credential_dir = os.path.join(home_dir, ".cache/credentials")
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(
-        credential_dir, "calendar_reminder_saved_credentials.json"
-    )
-    CLIENT_SECRET_FILE = os.path.join(credential_dir, CLIENT_SECRET_FILE)
-
-    try:
-        creds = Credentials.from_authorized_user_file(credential_path, SCOPES)
+    creds = None
+    if Path.exists(f"{creds_path}/sport_reminder.json"):
+        creds = Credentials.from_authorized_user_file(
+            f"{creds_path}/sport_reminder.json", SCOPES
+        )
     # If there are no (valid) credentials available, let the user log in.
-    except:
-        try:
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-        except:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                f"{creds_path}/sport_reminder_credentials.json", SCOPES
+            )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open(credential_path, "w") as token:
+        with open(f"{creds_path}/sport_reminder.json", "w") as token:
             token.write(creds.to_json())
 
-    return creds
+    try:
+        service = build("calendar", "v3", credentials=creds)
 
-
-def add_months(sourcedate, months):
-    """Takes a sourcedate and adds months to it, outputting datetime"""
-
-    months_fine = False
-    while not months_fine:
-        try:
-            val = int(months)
-            if not 1 < val < 12:
-                months = abs(months)
-                months = months - (months // 12) * 12
-                if months == 0 or months == 12:
-                    print(
-                        f"Months must be a positive integer between 1-11, resorting to default of months=1"
-                    )
-                    months = 1
-                else:
-                    print(
-                        f"Months must be a positive integer between 1-11, assuming you meant {months}"
-                    )
-                months_fine = True
-            else:
-                months_fine = True
-        except ValueError:
-            print("That's not an int!")
-            print(
-                f"Months must be a positive integer between 1-11, resorting to default of months=1"
+        # Call the Calendar API
+        now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
+        print("Getting the upcoming 10 events")
+        events_result = (
+            service.events()
+            .list(
+                calendarId="primary",
+                timeMin=now,
+                maxResults=10,
+                singleEvents=True,
+                orderBy="startTime",
             )
-            months = 1
-            months_fine = True
-
-    month = sourcedate.month - 1 + months
-    year = sourcedate.year + month // 12
-    month = month % 12 + 1
-    day = min(sourcedate.day, calendar.monthrange(year, month)[1])
-    return datetime.date(year, month, day)
-
-
-@click.command()
-@click.option(
-    "--start",
-    default=datetime.date.today().isoformat(),
-    help="Date in YYYY-MM-DD format (DEFAULT=today)",
-)
-@click.option(
-    "--months", default=1, help="Number of months to add to start date (DEFAULT=1)"
-)
-@click.option("--verbose", is_flag=True, help="Will print out the results")
-@click.option("--add-to-calendar", is_flag=True, help="Add results to your calendar")
-@click.option(
-    "--source-calendar-url",
-    help="The URL to the calendar to check. In the form 'aaaaaaaaaaaaa@group.calendar.google.com'",
-    prompt=True,
-)
-def main(start, months, verbose, add_to_calendar, source_calendar_url):
-    """Scrapes source calendar and adds reminders to calendar to watch sport that occurred overnight"""
-
-    credentials = get_credentials()
-    # http = credentials.authorize(httplib2.Http())
-    service = discovery.build("calendar", "v3", credentials=credentials)
-
-    end = add_months(datetime.datetime.strptime(start, "%Y-%m-%d"), months)
-    start = start + "T00:00:00Z"
-    end = end.isoformat() + "T00:00:00Z"
-
-    eventsResult = (
-        service.events()
-        .list(
-            calendarId=source_calendar_url,
-            timeMin=start,
-            timeMax=end,
-            singleEvents=True,
-            orderBy="startTime",
+            .execute()
         )
-        .execute()
-    )
-    events = eventsResult.get("items", [])
 
-    if verbose:
+        events = events_result.get("items", [])
+
+        if not events:
+            print("No upcoming events found.")
+            return
+
+        # Prints the start and name of the next 10 events
         for event in events:
-            click.echo(f"{event}")
+            start = event["start"].get("dateTime", event["start"].get("date"))
+            print(start, event["summary"])
 
-    if add_to_calendar:
-        for event in events:
-            reminderEvent = {}
-            for item in ["summary", "location", "description", "start", "end"]:
-                reminderEvent[item] = event[item]
+    except HttpError as error:
+        print(f"An error occurred: {error}")
 
-            reminderEvent["summary"] = f'REMINDER: {event["summary"]}'
-            reminderEvent["start"] = {
-                "dateTime": f'{datetime.datetime.strftime(parse(event["end"]["dateTime"]) + datetime.timedelta(days=0), "%Y-%m-%dT9:00:00%z")}'
-            }
-            reminderEvent["end"] = {
-                "dateTime": f'{datetime.datetime.strftime(parse(event["end"]["dateTime"]) + datetime.timedelta(days=0), "%Y-%m-%dT11:00:00%z")}'
-            }
-            service.events().insert(
-                calendarId="4rtdpc5v9ncrht83gu73f5poig@group.calendar.google.com",
-                body=reminderEvent,
-            ).execute()
-            click.echo(f"Adding {reminderEvent['summary']} to calendar......")
+
+def main():
+    pass
 
 
 if __name__ == "__main__":
