@@ -50,21 +50,32 @@ def get_credentials():
     SCOPES = "https://www.googleapis.com/auth/calendar"
     CLIENT_SECRET_FILE = "sport_reminder_secrets.json"
     CLIENT_CREDENTIALS_FILE = "sport_reminder_credentials.json"
-    APPLICATION_NAME = "Sport Reminder"
-    FLAGS = None
+    creds = None
 
+    # Set up locations of files
     home_dir = Path.home()
     credential_dir = Path.joinpath(home_dir, ".cache/credentials")
-    if not Path.exists(credential_dir)
+    if not Path.exists(credential_dir):
         Path.mkdir(credential_dir)
-    credential_path = Path.joinpath(credential_dir,)
-    CLIENT_SECRET_FILE = os.path.join(credential_dir, CLIENT_SECRET_FILE)
+    credential_path = Path.joinpath(credential_dir, CLIENT_CREDENTIALS_FILE)
+    secret_path = Path.joinpath(credential_dir, CLIENT_SECRET_FILE)
 
-    store = Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        credentials = tools.run_flow(flow, store, flags)
-        print("Storing credentials to " + credential_path)
-    return credentials
+    # If the file exists, then try use it
+    if Path.exists(secret_path):
+        creds = Credentials.from_authorized_user_file(secret_path, SCOPES)
+
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(credential_path, SCOPES)
+            creds = flow.run_local_server(port=0)
+
+        # Save the credentials for the next run
+        with open(secret_path, "w") as token:
+            token.write(creds.to_json())
+
+
+if __name__ == "__main__":
+    get_credentials()
