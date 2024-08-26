@@ -34,70 +34,37 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-# If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
-creds_path = f"{Path.home()}/.cache/credentials"
+def get_credentials():
+    """Gets valid user credentials from storage.
 
+    If nothing has been stored, or if the stored credentials are invalid,
+    the OAuth2 flow is completed to obtain the new credentials.
 
-def check_calendar(url):
-    """Shows basic usage of the Google Calendar API.
-    Prints the start and name of the next 10 events on the user's calendar.
+    Returns
+    -------
+        Credentials, the obtained credential.
+
     """
-    creds = None
-    if Path.exists(f"{creds_path}/sport_reminder.json"):
-        creds = Credentials.from_authorized_user_file(
-            f"{creds_path}/sport_reminder.json", SCOPES
-        )
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                f"{creds_path}/sport_reminder_credentials.json", SCOPES
-            )
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open(f"{creds_path}/sport_reminder.json", "w") as token:
-            token.write(creds.to_json())
+    # If modifying these scopes, delete your previously saved credentials
+    SCOPES = "https://www.googleapis.com/auth/calendar"
+    CLIENT_SECRET_FILE = "sport_reminder_secrets.json"
+    CLIENT_CREDENTIALS_FILE = "sport_reminder_credentials.json"
+    APPLICATION_NAME = "Sport Reminder"
+    FLAGS = None
 
-    try:
-        service = build("calendar", "v3", credentials=creds)
+    home_dir = Path.home()
+    credential_dir = Path.joinpath(home_dir, ".cache/credentials")
+    if not Path.exists(credential_dir)
+        Path.mkdir(credential_dir)
+    credential_path = Path.joinpath(credential_dir,)
+    CLIENT_SECRET_FILE = os.path.join(credential_dir, CLIENT_SECRET_FILE)
 
-        # Call the Calendar API
-        now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
-        print("Getting the upcoming 10 events")
-        events_result = (
-            service.events()
-            .list(
-                calendarId="primary",
-                timeMin=now,
-                maxResults=10,
-                singleEvents=True,
-                orderBy="startTime",
-            )
-            .execute()
-        )
-
-        events = events_result.get("items", [])
-
-        if not events:
-            print("No upcoming events found.")
-            return
-
-        # Prints the start and name of the next 10 events
-        for event in events:
-            start = event["start"].get("dateTime", event["start"].get("date"))
-            print(start, event["summary"])
-
-    except HttpError as error:
-        print(f"An error occurred: {error}")
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
+    store = Storage(credential_path)
+    credentials = store.get()
+    if not credentials or credentials.invalid:
+        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+        flow.user_agent = APPLICATION_NAME
+        credentials = tools.run_flow(flow, store, flags)
+        print("Storing credentials to " + credential_path)
+    return credentials
