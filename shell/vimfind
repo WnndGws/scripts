@@ -6,4 +6,4 @@ file="$(fasd -Rfl "$1" | fzf -1 -0 --no-sort +m)"
 if [ -z "$file" ]; then
     file="$(fzf -1 -q "$1")"
 fi
-vim "${file}" || return 1
+nvim "${file}" || return 1
