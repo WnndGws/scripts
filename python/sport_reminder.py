@@ -38,6 +38,10 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from rich import print_json
 
+id_list = [
+    "ijj3danperuqhjfsrtpdq41h2ekqdf84@import.calendar.google.com",
+]
+
 
 def get_credentials():
     """Get valid user credentials from storage.
@@ -83,7 +87,7 @@ def get_credentials():
     return creds
 
 
-def check_calendar() -> None:
+def check_calendar(id: str) -> None:
     """Check given calendar and return the relevant events."""
     creds = get_credentials()
     service = build("calendar", "v3", credentials=creds)
@@ -91,14 +95,14 @@ def check_calendar() -> None:
     # Call the Calendar API
     now = arrow.utcnow()
     local = now.to("Australia/Canberra")
-    local_earlier = local.shift(hours=-12)
+    local_later = local.shift(hours=24)
     print("Getting any events missed over night")
     events_result = (
         service.events()
         .list(
-            calendarId="ijj3danperuqhjfsrtpdq41h2ekqdf84@import.calendar.google.com",
-            timeMin=local_earlier,
-            timeMax=local,
+            calendarId=id,
+            timeMin=local,
+            timeMax=local_later,
             maxResults=10,
             singleEvents=True,
             orderBy="startTime",
@@ -111,67 +115,70 @@ def check_calendar() -> None:
 
 
 def add_to_calendar() -> None:
-    events = check_calendar()
-    if events:
-        utc_now = arrow.utcnow()
-        local_date = utc_now.to("Australia/Canberra").day
+    for id in id_list:
+        events = check_calendar(id)
+        if events:
+            utc_now = arrow.utcnow()
+            local_date = utc_now.to("Australia/Canberra").day
 
-        creds = get_credentials()
-        service = build("calendar", "v3", credentials=creds)
+            creds = get_credentials()
+            service = build("calendar", "v3", credentials=creds)
 
-        # Check what events exist in "Sport Reminder" calendar for today already
-        now = arrow.utcnow()
-        local_today = now.to("Australia/Canberra").replace(hour=0, minute=0, second=0)
-        local_tomorrow = local_today.shift(days=1)
-        print("Getting Events that are already added to the Reminder Calendar")
-        existing_events = (
-            service.events()
-            .list(
-                calendarId="5a57651064d725d01715c74655bc4647d48cdaff24b205eb958a84563c70de4b@group.calendar.google.com",
-                timeMin=local_today,
-                timeMax=local_tomorrow,
-                singleEvents=True,
-                orderBy="startTime",
+            # Check what events exist in "Sport Reminder" calendar for today already
+            now = arrow.utcnow()
+            local_today = now.to("Australia/Canberra").replace(
+                hour=0, minute=0, second=0
             )
-            .execute()
-        )
-        existing_events = existing_events.get("items", [])
-
-        for event in events:
-            orig_event = Dict(event)
-            new_event = Dict()
-            orig_start_time = arrow.get(orig_event.start.dateTime)
-            duration = arrow.get(orig_event.end.dateTime) - orig_start_time
-
-            # Midnight utc is good enough for me
-            new_start_time = orig_start_time.replace(hour=0, day=local_date)
-            new_end_time = new_start_time + duration
-
-            # Format correctly
-            new_event.start.dateTime = new_start_time.format("YYYY-MM-DDTHH:mm:ssZ")
-            new_event.end.dateTime = new_end_time.format("YYYY-MM-DDTHH:mm:ssZ")
-
-            # Add other missing info
-            new_event.summary = orig_event.summary
-            new_event.location = orig_event.location
-
-            # Check if event already exists
-            exist_count = 0
-            for check_event in existing_events:
-                check_event = Dict(check_event)
-                if new_event.summary == check_event.summary:
-                    exist_count += 1
-
-            if exist_count > 0:
-                print("Exists already, passing")
-            else:
-                print("Adding new event...")
-                service.events().insert(
+            local_tomorrow = local_today.shift(days=1)
+            print("Getting Events that are already added to the Reminder Calendar")
+            existing_events = (
+                service.events()
+                .list(
                     calendarId="5a57651064d725d01715c74655bc4647d48cdaff24b205eb958a84563c70de4b@group.calendar.google.com",
-                    body=new_event,
-                ).execute()
-    else:
-        print("No events over night")
+                    timeMin=local_today,
+                    timeMax=local_tomorrow,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
+            existing_events = existing_events.get("items", [])
+
+            for event in events:
+                orig_event = Dict(event)
+                new_event = Dict()
+                orig_start_time = arrow.get(orig_event.start.dateTime)
+                duration = arrow.get(orig_event.end.dateTime) - orig_start_time
+
+                # Midnight utc is good enough for me
+                new_start_time = orig_start_time.replace(hour=0, day=local_date)
+                new_end_time = new_start_time + duration
+
+                # Format correctly
+                new_event.start.dateTime = new_start_time.format("YYYY-MM-DDTHH:mm:ssZ")
+                new_event.end.dateTime = new_end_time.format("YYYY-MM-DDTHH:mm:ssZ")
+
+                # Add other missing info
+                new_event.summary = orig_event.summary
+                new_event.location = orig_event.location
+
+                # Check if event already exists
+                exist_count = 0
+                for check_event in existing_events:
+                    check_event = Dict(check_event)
+                    if new_event.summary == check_event.summary:
+                        exist_count += 1
+
+                if exist_count > 0:
+                    print("Exists already, passing")
+                else:
+                    print("Adding new event...")
+                    service.events().insert(
+                        calendarId="5a57651064d725d01715c74655bc4647d48cdaff24b205eb958a84563c70de4b@group.calendar.google.com",
+                        body=new_event,
+                    ).execute()
+        else:
+            print("No events over night")
 
 
 if __name__ == "__main__":
