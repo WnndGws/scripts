@@ -26,14 +26,17 @@
 * tinydb
 """
 
-import datetime
 from pathlib import Path
 
+import arrow
+import ujson
+from addict import Dict
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from rich import print_json
 
 
 def get_credentials():
@@ -77,20 +80,25 @@ def get_credentials():
         with open(secret_path, "w") as token:
             token.write(creds.to_json())
 
+    return creds
 
-def check_calendar(url) -> list():
+
+def check_calendar() -> None:
     """Check given calendar and return the relevant events."""
     creds = get_credentials()
     service = build("calendar", "v3", credentials=creds)
 
     # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
-    print("Getting the upcoming 10 events")
+    now = arrow.utcnow()
+    local = now.to("Australia/Canberra")
+    local_earlier = local.shift(hours=-12)
+    print("Getting any events missed over night")
     events_result = (
         service.events()
         .list(
-            calendarId="primary",
-            timeMin=now,
+            calendarId="ijj3danperuqhjfsrtpdq41h2ekqdf84@import.calendar.google.com",
+            timeMin=local_earlier,
+            timeMax=local,
             maxResults=10,
             singleEvents=True,
             orderBy="startTime",
@@ -99,15 +107,72 @@ def check_calendar(url) -> list():
     )
     events = events_result.get("items", [])
 
-    if not events:
-        print("No upcoming events found.")
-        return
+    return events
 
-    # Prints the start and name of the next 10 events
-    for event in events:
-        start = event["start"].get("dateTime", event["start"].get("date"))
-        print(start, event["summary"])
+
+def add_to_calendar() -> None:
+    events = check_calendar()
+    if events:
+        utc_now = arrow.utcnow()
+        local_date = utc_now.to("Australia/Canberra").day
+
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)
+
+        # Check what events exist in "Sport Reminder" calendar for today already
+        now = arrow.utcnow()
+        local_today = now.to("Australia/Canberra").replace(hour=0, minute=0, second=0)
+        local_tomorrow = local_today.shift(days=1)
+        print("Getting Events that are already added to the Reminder Calendar")
+        existing_events = (
+            service.events()
+            .list(
+                calendarId="5a57651064d725d01715c74655bc4647d48cdaff24b205eb958a84563c70de4b@group.calendar.google.com",
+                timeMin=local_today,
+                timeMax=local_tomorrow,
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
+        )
+        existing_events = existing_events.get("items", [])
+
+        for event in events:
+            orig_event = Dict(event)
+            new_event = Dict()
+            orig_start_time = arrow.get(orig_event.start.dateTime)
+            duration = arrow.get(orig_event.end.dateTime) - orig_start_time
+
+            # Midnight utc is good enough for me
+            new_start_time = orig_start_time.replace(hour=0, day=local_date)
+            new_end_time = new_start_time + duration
+
+            # Format correctly
+            new_event.start.dateTime = new_start_time.format("YYYY-MM-DDTHH:mm:ssZ")
+            new_event.end.dateTime = new_end_time.format("YYYY-MM-DDTHH:mm:ssZ")
+
+            # Add other missing info
+            new_event.summary = orig_event.summary
+            new_event.location = orig_event.location
+
+            # Check if event already exists
+            exist_count = 0
+            for check_event in existing_events:
+                check_event = Dict(check_event)
+                if new_event.summary == check_event.summary:
+                    exist_count += 1
+
+            if exist_count > 0:
+                print("Exists already, passing")
+            else:
+                print("Adding new event...")
+                service.events().insert(
+                    calendarId="5a57651064d725d01715c74655bc4647d48cdaff24b205eb958a84563c70de4b@group.calendar.google.com",
+                    body=new_event,
+                ).execute()
+    else:
+        print("No events over night")
 
 
 if __name__ == "__main__":
-    get_credentials()
+    add_to_calendar()
