@@ -95,7 +95,7 @@ def check_calendar(id: str) -> None:
     # Call the Calendar API
     now = arrow.utcnow()
     local = now.to("Australia/Canberra")
-    local_later = local.shift(hours=24)
+    local_later = local.shift(hours=192)
     print("Getting any events missed over night")
     events_result = (
         service.events()
@@ -146,16 +146,20 @@ def add_to_calendar() -> None:
 
             for event in events:
                 orig_event = Dict(event)
+                print(orig_event)
                 new_event = Dict()
                 orig_start_time = arrow.get(orig_event.start.dateTime)
                 duration = arrow.get(orig_event.end.dateTime) - orig_start_time
+                orig_start_time = orig_start_time.to("Australia/Canberra")
 
-                # Midnight utc is good enough for me
-                new_start_time = orig_start_time.replace(hour=0, day=local_date)
-                new_end_time = new_start_time + duration
+                # Move to the next available 9am
+                replaced_9am = orig_start_time.replace(hour=9)
+                if replaced_9am < orig_start_time:
+                    replaced_9am = replaced_9am.shift(days=1)
+                new_end_time = replaced_9am + duration
 
                 # Format correctly
-                new_event.start.dateTime = new_start_time.format("YYYY-MM-DDTHH:mm:ssZ")
+                new_event.start.dateTime = replaced_9am.format("YYYY-MM-DDTHH:mm:ssZ")
                 new_event.end.dateTime = new_end_time.format("YYYY-MM-DDTHH:mm:ssZ")
 
                 # Add other missing info
