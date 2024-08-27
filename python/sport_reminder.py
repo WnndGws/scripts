@@ -96,7 +96,7 @@ def check_calendar(id: str) -> None:
     # Call the Calendar API
     now = arrow.utcnow()
     local = now.to("Australia/Canberra")
-    local_later = local.shift(hours=192)
+    local_later = local.shift(days=8)
     print("Getting any events missed over night")
     events_result = (
         service.events()
