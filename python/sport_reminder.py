@@ -125,28 +125,9 @@ def add_to_calendar() -> None:
             service = build("calendar", "v3", credentials=creds)
 
             # Check what events exist in "Sport Reminder" calendar for today already
-            now = arrow.utcnow()
-            local_today = now.to("Australia/Canberra").replace(
-                hour=0, minute=0, second=0
-            )
-            local_tomorrow = local_today.shift(days=1)
-            print("Getting Events that are already added to the Reminder Calendar")
-            existing_events = (
-                service.events()
-                .list(
-                    calendarId="5a57651064d725d01715c74655bc4647d48cdaff24b205eb958a84563c70de4b@group.calendar.google.com",
-                    timeMin=local_today,
-                    timeMax=local_tomorrow,
-                    singleEvents=True,
-                    orderBy="startTime",
-                )
-                .execute()
-            )
-            existing_events = existing_events.get("items", [])
 
             for event in events:
                 orig_event = Dict(event)
-                print(orig_event)
                 new_event = Dict()
                 orig_start_time = arrow.get(orig_event.start.dateTime)
                 duration = arrow.get(orig_event.end.dateTime) - orig_start_time
@@ -166,10 +147,26 @@ def add_to_calendar() -> None:
                 new_event.summary = orig_event.summary
                 new_event.location = orig_event.location
 
+                print("Getting Events that are already added to the Reminder Calendar")
+                existing_events = (
+                    service.events()
+                    .list(
+                        calendarId="5a57651064d725d01715c74655bc4647d48cdaff24b205eb958a84563c70de4b@group.calendar.google.com",
+                        timeMin=replaced_9am,
+                        maxResults=10,
+                        singleEvents=True,
+                        orderBy="startTime",
+                    )
+                    .execute()
+                )
+                existing_events = existing_events.get("items", [])
+
                 # Check if event already exists
                 exist_count = 0
                 for check_event in existing_events:
                     check_event = Dict(check_event)
+                    print(new_event)
+                    print(check_event)
                     if new_event.summary == check_event.summary:
                         exist_count += 1
 
