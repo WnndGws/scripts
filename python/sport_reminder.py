@@ -40,6 +40,7 @@ from rich import print_json
 
 id_list = [
     "ijj3danperuqhjfsrtpdq41h2ekqdf84@import.calendar.google.com",
+    "nfl_-m-06rny_%53an+%46rancisco+49ers#sports@group.v.calendar.google.com",
 ]
 
 
@@ -118,9 +119,6 @@ def add_to_calendar() -> None:
     for id in id_list:
         events = check_calendar(id)
         if events:
-            utc_now = arrow.utcnow()
-            local_date = utc_now.to("Australia/Canberra").day
-
             creds = get_credentials()
             service = build("calendar", "v3", credentials=creds)
 
@@ -165,8 +163,6 @@ def add_to_calendar() -> None:
                 exist_count = 0
                 for check_event in existing_events:
                     check_event = Dict(check_event)
-                    print(new_event)
-                    print(check_event)
                     if new_event.summary == check_event.summary:
                         exist_count += 1
 
