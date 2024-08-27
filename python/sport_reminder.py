@@ -153,7 +153,7 @@ def add_to_calendar() -> None:
                 orig_start_time = orig_start_time.to("Australia/Canberra")
 
                 # Move to the next available 9am
-                replaced_9am = orig_start_time.replace(hour=9)
+                replaced_9am = orig_start_time.replace(hour=10, minute=0)
                 if replaced_9am < orig_start_time:
                     replaced_9am = replaced_9am.shift(days=1)
                 new_end_time = replaced_9am + duration
