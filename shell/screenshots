@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+## Saves a screenshot, and copies the image to the clipboard, and then the link
+
+echo "Select area to share......"
+sleep 0.1
+scrot --quality 100 --select "$HOME/%FT%T.png"
+file_to_share="$HOME/"$(/bin/ls --sort time "$HOME" | head -n1)
+
+# Allow 20 seconds to paste image
+xclip -selection clipboard -t image/png -i "$file_to_share"
+secs=$((20))
+while [ $secs -gt 0 ]; do
+    printf "%s\n" "Paste image within the next $secs seconds...."
+    sleep 1
+    secs=$((secs - 1))
+done
+
+# Clear clipboard of image
+printf "%s" "Clearing clipboard...."
+xclip -selection clipboard -i /dev/null

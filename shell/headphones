@@ -1,0 +1,31 @@
+#!/usr/bin/env expect
+## Connects headphones
+
+set address [lindex $argv 0]
+
+spawn bluetoothctl
+expect -re "#"
+send "untrust 88:D0:39:64:E8:27\r"
+expect -re "#"
+send "remove 88:D0:39:64:E8:27\r"
+expect -re "#"
+send "power on\r"
+expect -re "#"
+send "agent on\r"
+expect -re "#"
+send "default-agent\r"
+expect -re "#"
+send "scan on\r"
+sleep 10
+expect -re "#"
+send "scan off\r"
+sleep 2
+expect -re "#"
+send "pair 88:D0:39:64:E8:27\r"
+expect -re "\[bluetooth]#"
+send "trust 88:D0:39:64:E8:27\r"
+expect -re "\[bluetooth]#"
+send "connect 88:D0:39:64:E8:27\r"
+expect -re "\[Soundcore Life Q20\]#"
+send "quit\r"
+expect eof

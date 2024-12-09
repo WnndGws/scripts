@@ -1,0 +1,41 @@
+#!/usr/bin/env zsh
+## Adds an item from a specified file to the podcast xml file
+
+while getopts f:u:l: flag
+do
+    case "${flag}" in
+        f) file=${OPTARG} ;;
+        u) url=${OPTARG} ;;
+        l) input=${OPTARG} ;;
+    esac
+done
+
+# Delete last two lines of the file
+sed -i '$d' $file
+sed -i '$d' $file
+
+# Get file info
+guid=${input%.*}
+duration=$(ffprobe -v error -show_entries format=duration -sexagesimal -of default=noprint_wrappers=1:nokey=1 -pretty $input | awk -F ':' '{print $2":"$3}' | cut -d'.' -f1)
+length=$(stat -c "%s" $input)
+
+# Add the item
+cat >> $file << EOF
+    <item>
+      <guid>$guid</guid>
+      <title>$guid</title>
+      <link></link>
+      <description></description>
+      <pubDate>Thu, 01 Apr 2021 15:27:52 +0000</pubDate>
+      <enclosure url="$url/$guid.m4a" length="$length" type="audio/mpeg"></enclosure>
+      <itunes:author>Test podcast</itunes:author>
+      <itunes:subtitle>$title</itunes:subtitle>
+      <itunes:summary><![CDATA[]]></itunes:summary>
+      <itunes:image href="https://image.freepik.com/free-vector/illustration-headphones-icon_53876-5571.jpg"></itunes:image>
+      <itunes:duration>$duration</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+      <itunes:order>1</itunes:order>
+    </item>
+  </channel>
+</rss>
+EOF
