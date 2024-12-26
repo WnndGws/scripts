@@ -1,9 +1,0 @@
-[oauth]
-client_id =
-client_secret =
-
-[playlists]
-# Comma-separated list of source playlist IDs
-source_playlist_ids = PL1..., PL2..., PL3...
-# Target playlist ID where videos will be added
-target_playlist_id =
