@@ -13,6 +13,7 @@ dependencies = [
     "pyupgrade>=3.19.0",
     "questionary>=2.0.1",
     "tenacity>=9.0.0",
+    "thefuzz>=0.22.1",
     "tinydb>=4.8.2",
     "typer>=0.12.5",
 ]
