@@ -3,7 +3,7 @@ import math
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 from urllib.parse import urlencode
 
 import httpx
@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from rich.console import Console
 from rich.progress import BarColumn, Progress, TextColumn, TimeElapsedColumn
 from tenacity import retry, stop_after_attempt, wait_exponential
+from thefuzz import fuzz, process
 from tinydb import Query, TinyDB
 
 app = typer.Typer()
@@ -36,7 +37,7 @@ API_BASE_URL = "https://www.googleapis.com/youtube/v3"
 class Config(BaseModel):
     client_id: str
     client_secret: str
-    source_playlist_ids: List[str]
+    source_playlist_ids: list[str]
     target_playlist_id: str
 
 
@@ -57,6 +58,67 @@ class Token(BaseModel):
         return (
             time.time() >= self.expiry_time - 60
         )  # Refresh if less than 1 minute left
+
+
+def get_video_details(video_ids: list[str], headers: dict) -> dict[str, dict]:
+    video_details = {}
+    for i in range(0, len(video_ids), 50):
+        batch = video_ids[i : i + 50]
+        params = {
+            "part": "snippet",
+            "id": ",".join(batch),
+            "maxResults": 50,
+        }
+        url = f"{API_BASE_URL}/videos"
+        response = make_request_with_retries("GET", url, headers, params=params)
+        data = response.json()
+
+        for item in data.get("items", []):
+            video_details[item["id"]] = {
+                "title": item["snippet"]["title"],
+                "publishedAt": item["snippet"]["publishedAt"],
+            }
+    return video_details
+
+
+def find_video_by_title(title: str, videos: dict[str, dict]) -> Optional[str]:
+    if not title or not videos:
+        return None
+
+    titles_dict = {vid: details["title"] for vid, details in videos.items()}
+    matches = process.extract(title, titles_dict.values(), scorer=fuzz.ratio, limit=3)
+
+    if not matches:
+        return None
+
+    choices = [
+        {"name": f"{title} (Match: {score}%)", "value": title, "style": "fg:green"}
+        for title, score in matches
+    ]
+    choices.append({"name": "None of these matches", "value": None, "style": "fg:red"})
+
+    selected = questionary.select(
+        "Select the matching video:",
+        choices=choices,
+        style=questionary.Style(
+            [
+                ("qmark", "fg:yellow bold"),
+                ("question", "fg:yellow bold"),
+                ("pointer", "fg:cyan bold"),
+                ("highlighted", "fg:cyan bold"),
+                ("selected", "fg:green bold"),
+            ]
+        ),
+    ).ask()
+
+    if selected is None:
+        return None
+
+    for vid, vtitle in titles_dict.items():
+        if vtitle == selected:
+            return vid
+
+    return None
 
 
 def load_config() -> Config:
@@ -100,6 +162,15 @@ def get_auth_url(config: Config) -> str:
 
 def authenticate(config: Config) -> Token:
     token = load_token()
+
+    if token:
+        console.print(
+            f"[bold blue]Debug - Token found: Expires in {token.expiry_time - time.time():.0f} seconds[/bold blue]"
+        )
+        console.print(
+            f"[bold blue]Debug - Has refresh token: {'Yes' if token.refresh_token else 'No'}[/bold blue]"
+        )
+
     if token and not token.is_expired():
         return token
 
@@ -132,6 +203,8 @@ def refresh_token_if_needed(config: Config, token: Token) -> Token:
     if not token.is_expired():
         return token
 
+    console.print("[bold blue]Debug - Token expired, attempting refresh[/bold blue]")
+
     if not token.refresh_token:
         console.print(
             "[bold red]No refresh token available. Please re-authenticate.[/bold red]"
@@ -144,13 +217,22 @@ def refresh_token_if_needed(config: Config, token: Token) -> Token:
         "refresh_token": token.refresh_token,
         "grant_type": "refresh_token",
     }
-    response = make_request_with_retries("POST", TOKEN_URL, headers={}, data=data)
-    new_token_data = response.json()
-    new_token_data["refresh_token"] = token.refresh_token  # Keep the same refresh token
-    new_token = Token.from_dict(new_token_data)
-    save_token(new_token)
-    console.print("[bold green]Token refreshed successfully.[/bold green]")
-    return new_token
+
+    try:
+        response = make_request_with_retries("POST", TOKEN_URL, headers={}, data=data)
+        new_token_data = response.json()
+        console.print("[bold blue]Debug - Refresh response:[/bold blue]")
+        console.print(new_token_data)
+
+        # Keep the existing refresh token as YouTube doesn't always return it
+        new_token_data["refresh_token"] = token.refresh_token
+        new_token = Token.from_dict(new_token_data)
+        save_token(new_token)
+        console.print("[bold green]Token refreshed successfully.[/bold green]")
+        return new_token
+    except Exception as e:
+        console.print(f"[bold red]Debug - Refresh failed: {e!s}[/bold red]")
+        return authenticate(config)
 
 
 def get_headers(token: Token) -> dict:
@@ -204,7 +286,7 @@ def save_video_upload_date_to_cache(db: TinyDB, video_id: str, published_at: str
         video_cache.insert({"id": video_id, "publishedAt": published_at})
 
 
-def get_playlist_videos(playlist_id: str, headers: dict) -> List[str]:
+def get_playlist_videos(playlist_id: str, headers: dict) -> list[str]:
     videos = []
     next_page = None
     while True:
@@ -228,7 +310,7 @@ def get_playlist_videos(playlist_id: str, headers: dict) -> List[str]:
     return videos
 
 
-def get_playlist_videos_with_item_ids(playlist_id: str, headers: dict) -> List[Dict]:
+def get_playlist_videos_with_item_ids(playlist_id: str, headers: dict) -> list[dict]:
     videos = []
     next_page = None
     while True:
@@ -271,8 +353,8 @@ def get_video_published_date(video_id: str, headers: dict, db: TinyDB) -> Option
 
 
 def get_video_upload_dates(
-    video_ids: List[str], headers: dict, db: TinyDB
-) -> Dict[str, str]:
+    video_ids: list[str], headers: dict, db: TinyDB
+) -> dict[str, str]:
     missing_ids = []
     upload_dates = {}
 
@@ -317,7 +399,7 @@ def get_video_upload_dates(
 
 
 def add_videos_to_playlist(
-    playlist_id: str, video_ids: List[str], headers: dict, db: TinyDB
+    playlist_id: str, video_ids: list[str], headers: dict, db: TinyDB
 ):
     existing_videos = get_playlist_videos(playlist_id, headers)
 
@@ -396,22 +478,37 @@ def combine_playlists():
     token = authenticate(config)
     token = refresh_token_if_needed(config, token)
     headers = get_headers(token)
-
     db = load_video_cache()
 
-    # Ask the user for the last watched video ID
-    last_watched_video_id = questionary.text(
-        "Enter the ID of the last video you watched (leave blank if none)"
+    last_watched_title = questionary.text(
+        "Enter the title of the last video you watched (leave blank if none)"
     ).ask()
 
-    if last_watched_video_id:
-        last_watched_published_at = get_video_published_date(
-            last_watched_video_id, headers, db
-        )
-        if not last_watched_published_at:
-            console.print(
-                "[red]Could not retrieve published date for the last watched video. Exiting.[/red]"
-            )
+    # Fetch video IDs from source playlists
+    all_video_ids = []
+    console.print("[bold blue]Fetching video IDs from source playlists...[/bold blue]")
+    for pl_id in config.source_playlist_ids:
+        videos = get_playlist_videos(pl_id, headers)
+        if videos:
+            all_video_ids.extend(videos)
+
+    if not all_video_ids:
+        console.print("[red]No videos found in playlists. Exiting.[/red]")
+        return
+
+    # Get video details including titles
+    video_details = get_video_details(all_video_ids, headers)
+
+    # Find last watched video using fuzzy search
+    last_watched_video_id = None
+    if last_watched_title:
+        last_watched_video_id = find_video_by_title(last_watched_title, video_details)
+        if last_watched_video_id:
+            last_watched_published_at = video_details[last_watched_video_id][
+                "publishedAt"
+            ]
+        else:
+            console.print("[red]Could not find a matching video. Exiting.[/red]")
             return
     else:
         last_watched_published_at = None
