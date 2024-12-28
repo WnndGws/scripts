@@ -43,21 +43,86 @@ class Config(BaseModel):
 
 class Token(BaseModel):
     access_token: str
-    expires_in: int
-    refresh_token: Optional[str]
     token_type: str
-    expiry_time: float
+    expires_in: int = 3600
+    refresh_token: Optional[str] = None
+
+    expiry_time: float = 0
 
     @classmethod
     def from_dict(cls, data: dict):
-        expires_in = data.get("expires_in")
-        expiry_time = time.time() + expires_in if expires_in else 0
-        return cls(expiry_time=expiry_time, **data)
+        # Calculate expiry time when creating token
+        data["expiry_time"] = time.time() + data.get("expires_in", 3600)
+        return cls(**data)
 
-    def is_expired(self):
-        return (
-            time.time() >= self.expiry_time - 60
-        )  # Refresh if less than 1 minute left
+    def is_expired(self) -> bool:
+        # Add 60-second buffer before expiration
+        return time.time() >= (self.expiry_time - 60)
+
+    def to_dict(self) -> dict:
+        return {
+            "access_token": self.access_token,
+            "token_type": self.token_type,
+            "expires_in": self.expires_in,
+            "refresh_token": self.refresh_token,
+            "expiry_time": self.expiry_time,
+        }
+
+
+def save_token(token: Token, path: Path = Path("token.json")):
+    with path.open("wb") as f:
+        f.write(orjson.dumps(token.to_dict()))
+
+
+def load_token(path: Path = Path("token.json")) -> Optional[Token]:
+    if path.exists():
+        with path.open("rb") as f:
+            data = orjson.loads(f.read())
+            return Token.from_dict(data)
+    return None
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
+def refresh_token(client_id: str, client_secret: str, token: Token) -> Token:
+    """Refresh an expired token using the refresh token."""
+    if not token.refresh_token:
+        raise ValueError("No refresh token available")
+
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "refresh_token": token.refresh_token,
+        "grant_type": "refresh_token",
+    }
+
+    response = httpx.post(
+        "https://oauth2.googleapis.com/token", data=data, timeout=30.0
+    )
+    response.raise_for_status()
+
+    new_token_data = response.json()
+
+    # Ensure refresh token persists
+    if not new_token_data.get("refresh_token"):
+        new_token_data["refresh_token"] = token.refresh_token
+
+    new_token = Token.from_dict(new_token_data)
+    save_token(new_token)
+
+    return new_token
+
+
+def get_valid_token(config: dict, force_refresh: bool = False) -> Token:
+    """Get a valid token, refreshing if necessary."""
+    token = load_token()
+
+    if not token:
+        raise ValueError("No token found - please authenticate first")
+
+    if force_refresh or token.is_expired():
+        token = refresh_token(config["client_id"], config["client_secret"], token)
+
+    return token
 
 
 def get_video_details(video_ids: list[str], headers: dict) -> dict[str, dict]:
@@ -475,8 +540,10 @@ def remove_videos_from_playlist(
 @app.command()
 def combine_playlists():
     config = load_config()
-    token = authenticate(config)
-    token = refresh_token_if_needed(config, token)
+    try:
+        token = get_valid_token(config.model_dump())
+    except ValueError:
+        token = authenticate(config)
     headers = get_headers(token)
     db = load_video_cache()
 
