@@ -1,9 +1,11 @@
-#!/usr/bin/env -S uv run
+#!/usr/bin/env python
+"""#!/usr/bin/env -S uv run
 
 # /// script
 # requires-python = ">=3.13"
 # dependencies = ["httpx", "regex", "arrow", "polars", "typer"]
 # ///
+"""
 
 from pathlib import Path
 
