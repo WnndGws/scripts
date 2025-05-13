@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+
+declare -A aliases
+declare -A helptext
+declare -r c_reset=$(tput sgr0)
+declare -r c_red=$(tput setaf 1)
+declare -r c_green=$(tput setaf 2)
+declare -r c_yellow=$(tput setaf 3)
+declare -r c_grey=$(tput setaf 8)
+
+err() {
+  printf "${c_red}%s${c_reset}\n" "$*" >&2
+}
+
+die() {
+  if (( $# > 0 )); then
+    err "$@"
+  fi
+  exit 1
+}
+
+has() {
+  local v c
+  if [[ $1 = '-v' ]]; then
+    v=1
+    shift
+  fi
+  for c; do c="${c%% *}"
+    if ! command -v "$c" &> /dev/null; then
+      (( v > 0 )) && err "$c not found"
+      return 1
+    fi
+  done
+}
+
+aliases[-h]=help
+aliases[--help]=help
+helptext[help]='show this help'
+subcmd_help() {
+  local formattedhelptext
+
+  formattedhelptext=$(for c in "${subcmds_avail[@]}"; do
+    printf "  %s\n    %s\n" "$c" "${helptext[$c]}"
+  done)
+  LESS=-FEXR less <<-HELP
+$0 <COMMAND>
+
+${formattedhelptext}
+HELP
+}
+
+fzf() {
+  local prompt
+  if [[ $1 == --prompt=* ]]; then
+    prompt="${1##*=}>"
+    shift
+  fi
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  opts=( --prompt="fzgit${branch}>${prompt} " )
+  [[ -v FZGIT_OPTIONS ]] && opts=( $FZGIT_OPTIONS )
+  command fzf "${opts[@]}" \
+    --inline-info \
+    --ansi \
+    --no-clear \
+    "$@"
+}
+
+helptext[diff]='Show changes between commits, commit and working tree, etc'
+subcmd_diff() {
+  if (( $# > 0 )); then git diff "$@"; return; fi
+  fzf \
+    --bind='start:reload:git -c color.status=always status -su' \
+    --nth=2.. \
+    --preview='git diff --color=always {2..} | delta -w $FZF_PREVIEW_COLUMNS' \
+    --bind='enter:execute:git diff --color=always {2..}' \
+    --preview-window=70%
+}
+
+helptext[add]='Add file contents to the index'
+subcmd_add() {
+  if (( $# > 0 )); then git add "$@"; return; fi
+  local diff
+  diff=$(git diff --color=always | perl -pwe 's/^(\e\[[0-9;]*m)*(?=diff)/\0/m' | fzf --read0)
+  [[ -z $diff ]] && return
+  git apply --check --cached <<< "$diff" &&
+    git apply --cached <<< "$diff" &&
+    git apply --stat <<< "$diff"
+  subcmd_add
+}
+
+helptext[status]='Show the working tree status'
+subcmd_status() {
+  local preview='git diff --color=always {2..}'
+  fzf \
+    --nth=2.. \
+    --bind='start:reload:git -c color.status=always status -s' \
+    --preview="$preview" \
+    --bind='enter:execute:git add -p {2..}'
+}
+
+helptext[checkout]='Checkout a branch or paths to the working tree'
+subcmd_checkout() { # {{{
+  local list response key branch header
+  if (( $# > 0 )); then git checkout "$@"; return; fi
+  {
+    git branch --all --color -vv
+    git tag
+  } |
+    fzf --prompt='checkout' \
+    --header="$header" \
+    --bind=enter:execute:"git checkout \$(perl -pe 's/^\*?\s*(remotes\/[^\/]*\/)?([^ ]+).*/\2/' <<< {})"
+
+}
+
+helptext[stash-ls]='List the stash entries that you currently have'
+subcmd_stash-ls() {
+  if (( $# > 0 )); then git stash "$@"; return; fi
+  local header='use ctrl-d to show a diff or ctrl-b to create a new branch'
+  git stash list --pretty="%C(yellow)%h %>(14)%Cgreen%cr %C(blue)%gs" |
+    fzf --prompt='stash' --no-sort --header="$header" \
+    --bind='ctrl-d:execute: git diff {1} --color=always | less -R' \
+    --bind='ctrl-b:execute(git stash branch "stash-{1}" {1})+abort' \
+    --preview='git diff --color {1}'
+}
+
+has -v fzf perl git || die
+
+mapfile -t subcmds_avail < <(compgen -A function | awk '/^subcmd_/ { sub(/^subcmd_/, "", $0); print }')
+
+nocmd() {
+  local cmd
+  cmd=$(for c in "${subcmds_avail[@]}"; do
+  printf "$c\t${help}\t${helptext[$c]}\n"
+done)
+  cmd=$(column -t -s $'\t' <<< "$cmd" | fzf | awk '{print $1}')
+  if [[ -n $cmd ]]; then
+    subcmd_$cmd
+  else
+    exit 1
+  fi
+}
+
+
+if (( $# < 1 )); then
+  nocmd
+  exit 1
+elif has "subcmd_$1"; then
+  subcmd="subcmd_$1"
+  shift
+  "$subcmd" "$@"
+elif [[ -v aliases[$1] ]]; then
+  subcmd=subcmd_${aliases[$1]}
+  shift
+  "$subcmd" "$@"
+else
+  exec git "$@"
+fi

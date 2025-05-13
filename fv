@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+
+# open fasd files
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+fuzzy_open () {
+  local IFS=$'\n'
+  local files=()
+
+  files=(
+  "$(
+    fasd -fl \
+      | fzf \
+          --tac \
+          --reverse -1 \
+          --no-sort \
+          --multi \
+          --tiebreak=index \
+          --query "$1" \
+          --preview="${FZF_PREVIEW_CMD}" \
+          --preview-window='bottom' \
+          --select-1 \
+          --exit-0
+      )"
+  ) || return
+
+  "${EDITOR:-vim}" "${files[@]}"
+}
+
+fuzzy_open
