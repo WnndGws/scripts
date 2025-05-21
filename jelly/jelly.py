@@ -1,8 +1,11 @@
 from openapi_client.models.authenticate_user_by_name import AuthenticateUserByName
 from openapi_client.api.user_api import UserApi
+from openapi_client.api.user_views_api import UserViewsApi
+from openapi_client.api.items_api import ItemsApi
 from openapi_client.configuration import Configuration
 from openapi_client.api_client import ApiClient
 from rich import print
+from iterfzf import iterfzf
 
 from loguru import logger
 import json
@@ -60,6 +63,8 @@ if not config_data.server_url or not config_data.server_url.strip():
 config = Configuration(host=config_data.server_url)
 api_client = ApiClient(config)
 user_api = UserApi(api_client)
+user_views_api = UserViewsApi(api_client)
+items_api = ItemsApi(api_client)
 
 # Prepare authorization header template (without token)
 authorization_template = 'MediaBrowser , Client="other", Device="script", DeviceId="script", Version="0.0.0", Token="{}"'
@@ -99,6 +104,46 @@ def authenticate_and_save():
         return None
 
 
+def get_user_views(user_id: str):
+    views = user_views_api.get_user_views(user_id=user_id, _headers=headers)
+    view_info = [{k: v for (k, v) in view} for view in views.items]
+    return view_info
+
+
+def get_items(parent_id: str):
+    items = items_api.get_items(parent_id=parent_id, _headers=headers)
+    item_info = [{k: v for (k, v) in view} for view in items.items]
+    for item in item_info:
+        if item["type"] == "Episode":
+            item["name"] = f"Episode {item['index_number']} - {item['name']}"
+    try:
+        sorted_list = sorted(item_info, key=lambda d: d["index_number"], reverse=True)
+    except (TypeError, KeyError):
+        sorted_list = sorted(item_info, key=lambda d: d["name"], reverse=True)
+
+    return sorted_list
+
+
+def fzf_select(list_of_dicts: list[dict], location_list: list[dict]) -> dict:
+    item_choices = [choice["name"] for choice in list_of_dicts]
+    user_choice = iterfzf(item_choices)
+    user_choice = [
+        dictionary for dictionary in list_of_dicts if dictionary["name"] == user_choice
+    ][0]
+
+    new_location = add_to_location(
+        {"name": user_choice["name"], "id": user_choice["id"]},
+        location_list,
+    )
+    return user_choice, new_location
+
+
+def add_to_location(choice_location: dict, location_list: list[dict]) -> list[dict]:
+    location_string = f"{location_list['location_string']}/{choice_location['name']}"
+    location_id = f"{location_list['location_id']}/{choice_location['id']}"
+    return {"location_string": location_string, "location_id": location_id}
+
+
 if __name__ == "__main__":
     token = config_data.get("access_token")
     user_id = config_data.get("user_id")
@@ -110,11 +155,15 @@ if __name__ == "__main__":
 
     headers = get_headers(token)
 
+    location = {"location_string": "", "location_id": ""}
+
     # Example test call to verify token works
-    try:
-        test_result = user_api.get_current_user(_headers=headers)
-        print(test_result)
-    except Exception as e:
-        logger.error(f"API call failed: {e}")
-        print("[red]API call failed. Possibly invalid token.[/red]")
-        exit(1)
+    choice, location = fzf_select(get_user_views(user_id), location)
+    next_choice = get_items(choice["id"])
+    choice, location = fzf_select(next_choice, location)
+    next_choice = get_items(choice["id"])
+    choice, location = fzf_select(next_choice, location)
+    next_choice = get_items(choice["id"])
+    choice, location = fzf_select(next_choice, location)
+    next_choice = get_items(choice["id"])
+    print(choice, location)
