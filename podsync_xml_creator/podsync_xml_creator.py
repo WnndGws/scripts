@@ -4,7 +4,6 @@
 ## Check `skeletons/tools/py` for a list of currently preferred tools
 
 import base64
-import mimetypes
 import subprocess
 import sys
 import uuid
@@ -43,6 +42,8 @@ def ask_user_input():
     link_url = questionary.text(
         "What is the source URL for the downloads (Leave BLANK if none)."
     ).ask()
+    if link_url is None:
+        link_url = ""
     description = questionary.text("Short description of the podcast").ask()
     category = questionary.select(
         "What category is the podcast?",
@@ -65,14 +66,14 @@ def analyse_file(file: Path, folder_name: Path):
     """Get the info needed of each file."""
     # Generate a random UUID4 and take the first 8 bytes which is 12 characters
     guid = uuid.uuid4().bytes
-    guid = base64.urlsafe_b64encode(guid[:8]).decode("ascii")
+    guid = base64.urlsafe_b64encode(guid).decode("ascii")
+    guid = guid[:11]
 
     title = file.stem
     extension = file.suffix.lower()
     folder_name = folder_name
-    gouws_url = f"{private_url}/{folder_name}/{guid}{extension}"
+    gouws_url = f"https://podsync.gouws.com.au/{folder_name}/{guid}{extension}"
     length = str(file.stat().st_size)
-    mime_type, _ = mimetypes.guess_type(str(file))
     cover_url = ""
 
     # Use ffprobe to get media info
@@ -91,8 +92,15 @@ def analyse_file(file: Path, folder_name: Path):
 
     # Extract duration from format section
     duration = media_info["format"]["duration"]
+    title = media_info["format"]["tags"]["title"]
+    description = media_info["format"]["tags"]["description"]
 
     explicit = "yes"
+
+    mime_cmd = ["xdg-mime", "query", "filetype", str(file)]
+    mime_type = subprocess.run(
+        mime_cmd, capture_output=True, text=True, check=True
+    ).stdout
 
     return (
         guid,
@@ -104,6 +112,7 @@ def analyse_file(file: Path, folder_name: Path):
         cover_url,
         duration,
         explicit,
+        description,
     )
 
 
@@ -177,12 +186,13 @@ def generate_main_xml():
             cover_url,
             duration,
             explicit,
+            description,
         ) = analyse_file(file, folder_name)
         item_dict = {
             "guid": guid,
             "title": title,
             "link": gouws_url,
-            "description": "",
+            "description": description,
             "pubDate": pub_date,
             "enclosure": {"url": gouws_url, "length": length, "type": mime_type},
             "itunes:author": author,
@@ -198,6 +208,7 @@ def generate_main_xml():
 
     # Add items to channel
     for item_data in items:
+        logger.debug(item_data)
         item = ET.SubElement(channel, "item")
         ET.SubElement(item, "guid").text = item_data["guid"]
         ET.SubElement(item, "title").text = item_data["title"]
@@ -222,7 +233,7 @@ def generate_main_xml():
         ET.SubElement(item, "itunes:order").text = item_data["itunes:order"]
 
     # Prettify and save
-    rough_string = ET.tostring(rss, encoding="utf-8")
+    rough_string = ET.tostring(rss, encoding="unicode")
     reparsed = minidom.parseString(rough_string)
     pretty_xml = (
         reparsed.toprettyxml(indent="  ")
