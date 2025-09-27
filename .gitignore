@@ -3,6 +3,7 @@
 
 ### Custom ###
 *.xml
+*.m4b
 
 ### LaTeX ###
 ## Core latex/pdflatex auxiliary files:
