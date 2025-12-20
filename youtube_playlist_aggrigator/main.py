@@ -45,12 +45,12 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     expires_in: int = 3600
-    refresh_token: Optional[str] = None
+    refresh_token: str | None = None
 
     expiry_time: float = 0
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> Token:
         # Calculate expiry time when creating token
         data["expiry_time"] = time.time() + data.get("expires_in", 3600)
         return cls(**data)
@@ -69,12 +69,12 @@ class Token(BaseModel):
         }
 
 
-def save_token(token: Token, path: Path = Path("token.json")):
+def save_token(token: Token, path: Path = Path("token.json")) -> None:
     with path.open("wb") as f:
         f.write(orjson.dumps(token.to_dict()))
 
 
-def load_token(path: Path = Path("token.json")) -> Optional[Token]:
+def load_token(path: Path = Path("token.json")) -> Token | None:
     if path.exists():
         with path.open("rb") as f:
             data = orjson.loads(f.read())
@@ -146,7 +146,7 @@ def get_video_details(video_ids: list[str], headers: dict) -> dict[str, dict]:
     return video_details
 
 
-def find_video_by_title(title: str, videos: dict[str, dict]) -> Optional[str]:
+def find_video_by_title(title: str, videos: dict[str, dict]) -> str | None:
     if not title or not videos:
         return None
 
@@ -200,12 +200,12 @@ def load_config() -> Config:
     )
 
 
-def save_token(token: Token):
+def save_token(token: Token) -> None:
     with open(TOKEN_FILE, "wb") as f:
         f.write(orjson.dumps(token.dict()))
 
 
-def load_token() -> Optional[Token]:
+def load_token() -> Token | None:
     if TOKEN_FILE.exists():
         with open(TOKEN_FILE, "rb") as f:
             data = orjson.loads(f.read())
@@ -304,7 +304,7 @@ def get_headers(token: Token) -> dict:
     return {"Authorization": f"Bearer {token.access_token}"}
 
 
-def log_api_call(method: str, url: str, status_code: int, response_time: float):
+def log_api_call(method: str, url: str, status_code: int, response_time: float) -> None:
     logger.info(f"{method} {url} - Status: {status_code} - Time: {response_time:.2f}s")
 
 
@@ -336,7 +336,7 @@ def load_video_cache() -> TinyDB:
     return TinyDB(CACHE_FILE)
 
 
-def get_video_upload_date_from_cache(db: TinyDB, video_id: str) -> Optional[str]:
+def get_video_upload_date_from_cache(db: TinyDB, video_id: str) -> str | None:
     Video = Query()
     result = db.table("video_cache").get(Video.id == video_id)
     if result:
@@ -344,7 +344,9 @@ def get_video_upload_date_from_cache(db: TinyDB, video_id: str) -> Optional[str]
     return None
 
 
-def save_video_upload_date_to_cache(db: TinyDB, video_id: str, published_at: str):
+def save_video_upload_date_to_cache(
+    db: TinyDB, video_id: str, published_at: str
+) -> None:
     Video = Query()
     video_cache = db.table("video_cache")
     if not video_cache.contains(Video.id == video_id):
@@ -396,7 +398,7 @@ def get_playlist_videos_with_item_ids(playlist_id: str, headers: dict) -> list[d
     return videos
 
 
-def get_video_published_date(video_id: str, headers: dict, db: TinyDB) -> Optional[str]:
+def get_video_published_date(video_id: str, headers: dict, db: TinyDB) -> str | None:
     published_at = get_video_upload_date_from_cache(db, video_id)
     if published_at:
         return published_at
@@ -465,7 +467,7 @@ def get_video_upload_dates(
 
 def add_videos_to_playlist(
     playlist_id: str, video_ids: list[str], headers: dict, db: TinyDB
-):
+) -> None:
     existing_videos = get_playlist_videos(playlist_id, headers)
 
     existing_video_ids = set(existing_videos)
@@ -502,7 +504,7 @@ def add_videos_to_playlist(
 
 def remove_videos_from_playlist(
     playlist_id: str, video_ids_to_remove: set, headers: dict
-):
+) -> None:
     existing_playlist_items = get_playlist_videos_with_item_ids(playlist_id, headers)
     video_id_to_playlist_item_id = {
         item["contentDetails"]["videoId"]: item["id"]
@@ -538,7 +540,7 @@ def remove_videos_from_playlist(
 
 
 @app.command()
-def combine_playlists():
+def combine_playlists() -> None:
     config = load_config()
     try:
         token = get_valid_token(config.model_dump())
