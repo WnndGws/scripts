@@ -37,6 +37,9 @@ logger.configure(
 # Step 1: Generate the folder main info
 def ask_user_input():
     """Gather information from the user that will be used to generate the XML."""
+    public_url = questionary.text(
+        "What is the public URL the podcast will be hosted on?:"
+    ).ask()
     title = questionary.text("What is the 'podcast' title?").ask()
     author = questionary.text("Who is the podcast author?").ask()
     link_url = questionary.text(
@@ -58,11 +61,11 @@ def ask_user_input():
     logger.debug(f"Category: {category}")
     logger.debug(f"Cover URL: {image_url}")
 
-    return author, title, link_url, description, category, image_url
+    return author, title, link_url, description, category, image_url, public_url
 
 
 # Step 2: analyse media in folder
-def analyse_file(file: Path, folder_name: Path):
+def analyse_file(file: Path, folder_name: Path, public_url: str):
     """Get the info needed of each file."""
     # Generate a random UUID4 and take the first 8 bytes which is 12 characters
     guid = uuid.uuid4().bytes
@@ -72,7 +75,7 @@ def analyse_file(file: Path, folder_name: Path):
     title = file.stem
     extension = file.suffix.lower()
     folder_name = folder_name
-    gouws_url = f"https://podsync.gouws.com.au/{folder_name}/{guid}{extension}"
+    gouws_url = f"https://{public_url}/{folder_name}/{guid}{extension}"
     length = str(file.stat().st_size)
     cover_url = ""
 
@@ -136,7 +139,9 @@ def generate_main_xml():
     now = arrow.utcnow().to("+11:00")
     build_date = now.format("ddd, DD MMM YYYY HH:mm:ss ZZ")
     pub_date = now.format("ddd, DD MMM YYYY HH:mm:ss ZZ")
-    author, title, link_url, description, category, image_url = ask_user_input()
+    author, title, link_url, description, category, image_url, public_url = (
+        ask_user_input()
+    )
 
     # Channel metadata
     ET.SubElement(channel, "title").text = title
@@ -187,7 +192,7 @@ def generate_main_xml():
             duration,
             explicit,
             description,
-        ) = analyse_file(file, folder_name)
+        ) = analyse_file(file, folder_name, public_url)
         item_dict = {
             "guid": guid,
             "title": title,
