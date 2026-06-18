@@ -23,7 +23,7 @@ id_list = [
 ]
 
 
-def get_credentials():
+def get_credentials() -> None:
     """Get valid user credentials from storage.
 
     If nothing has been stored, or if the stored credentials are invalid,
@@ -32,6 +32,7 @@ def get_credentials():
     Returns
     -------
         Credentials, the obtained credential.
+
     """
     # If modifying these scopes, delete your previously saved credentials
     scopes = ["https://www.googleapis.com/auth/calendar.readonly"]
@@ -97,7 +98,7 @@ def truncate_fstring(s: str, max_length: int = 20) -> str:
     return s if len(s) <= max_length else s[: max_length - 3] + "..."
 
 
-def main():
+def main() -> None:
     now = arrow.utcnow()
     local_time = now.to("Australia/Canberra")
 
