@@ -3,6 +3,9 @@
 
 msg="try:"
 
+# Switch to branch for safety
+git checkout -b tmp-harvest
+
 # Find all commits with the target message on current branch and formats to HASH
 commits=$(git log --reverse --grep="$msg" --format='%H')
 
