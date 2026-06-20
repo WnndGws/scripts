@@ -1,4 +1,5 @@
 #!/bin/zsh
+### Find all commits in a repo with message 'try:' at the start, and cherry-pick them into one coherent commit
 
 msg="try:"
 
@@ -38,5 +39,4 @@ git reset HEAD -- .
 # Loop over changes and commit until there are no more unstaged bits
 while ! git diff --quiet; do
     git commit --patch
-    >>>>>>> e53395e (Updated harvester)
 done
