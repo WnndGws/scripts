@@ -46,5 +46,6 @@ done
 
 git push
 gh pr create --fill-verbose
-gh pr merge --rebase --delete-branch
+# gh pr merge --rebase --delete-branch
+gh pr merge --rebase
 git pull
