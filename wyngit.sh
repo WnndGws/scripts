@@ -47,12 +47,29 @@ git-backtrack() {
 
 # Reviewing
 git-review() {
-    local range=${1:-50}
-    local autos=$(git log --oneline -"$range" --grep='try:autosave' --reverse | awk '{print $1}')
-    local wips=$(git log --oneline -"$range" --grep='^wip:' --reverse | awk '{print $1}')
-    local shas="$autos $wips"
-    shas=$(echo "$shas" | tr ' ' '\n' | sed '/^$/d' | uniq)
-    if [ "$shas" = "" ]; then echo 'No try:autosave or wip: commits found'; return 0; fi
+    local subcmd=${1:-try}
+    case "$subcmd" in
+        try|wip)
+            ;;
+        *)
+            echo "Usage: git-review [try|wip]"
+            echo "  git-review       (default: try)"
+            echo "  git-review try"
+            echo "  git-review wip"
+            return 1
+            ;;
+    esac
+
+    local range=${2:-50}
+    local grep_pattern
+    if [ "$subcmd" = "try" ]; then
+        grep_pattern='try:autosave'
+    else
+        grep_pattern='^wip:'
+    fi
+
+    local shas=$(git log --oneline -"$range" --grep="$grep_pattern" --reverse | awk '{print $1}')
+    if [ "$shas" = "" ]; then echo "No ${subcmd}: commits found"; return 0; fi
     local remaining=""
     for sha in "${shas[@]}"; do remaining="$remaining $sha"; done
     while true; do
@@ -92,6 +109,7 @@ git-review() {
     done
     git bloat "$range"
 }
+
 
 # Feat branches
 git-propose() {
