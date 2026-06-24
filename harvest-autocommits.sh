@@ -43,3 +43,8 @@ git reset HEAD -- .
 while ! git diff --quiet; do
     git commit --patch
 done
+
+git push
+gh pr create --fill-verbose
+gh pr merge --rebase --delete-branch
+git pull
