@@ -43,9 +43,13 @@ git reset HEAD -- .
 while ! git diff --quiet; do
     git commit --patch
 done
+<<<<<<< Updated upstream
 
 git push
 gh pr create --fill-verbose
 # gh pr merge --rebase --delete-branch
 gh pr merge --rebase
 git pull
+||||||| Stash base
+=======
+>>>>>>> Stashed changes
