@@ -1,6 +1,16 @@
 #!/bin/zsh
 ### Find all commits in a repo with message 'try:' at the start, and cherry-pick them into one coherent commit
 
+# Check that no un-commited or un-staged files files exist
+dirty_files=$(git status --porcelain)
+number_of_dirty=${#${(@f)dirty_files}}
+
+if [[ $number_of_dirty -gt 0 ]]; then
+    echo "Add and Commit dirty files first..."
+    git status
+    return 1
+fi
+
 msg="try:"
 
 # Switch to branch for safety
