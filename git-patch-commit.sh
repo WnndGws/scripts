@@ -1,5 +1,6 @@
-#!/bin/bash
+#!/bin/zsh
 
+clear
 # While there are unstaged files or diffs; do
 while ! git diff --quiet -- . || git ls-files --others --exclude-standard | grep -q .; do
     # stage binary files first
@@ -8,9 +9,9 @@ while ! git diff --quiet -- . || git ls-files --others --exclude-standard | grep
     git ls-files --others --exclude-standard -z | xargs -0 -r git add -N --
     # interactively stage text hunks + untracked files (full-file additions)
     git add --patch . || break
+    git commit
     # reset -N on anything you skipped so it goes back to untracked
     git diff --name-only --diff-filter=M -z | xargs -0 -r git reset -q
-    git commit
 done
 
 git push
