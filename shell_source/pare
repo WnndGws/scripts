@@ -1,0 +1,59 @@
+# adapted from https://github.com/DanielFGray/fzf-scripts (fq, fzf-rem)
+
+pare() {
+    local by_size=0 preview search pkgs
+    local -a fzf_args
+
+    # -s/--size: sort by installed size
+    if [[ $1 = -s || $1 = --size ]]; then
+        by_size=1
+        shift
+    fi
+
+    # user arguments become the fzf initial query
+    (($# > 0)) && fzf_args=(-q "$*")
+
+    _pkgremove_check fzf expac || return 1
+    preview=$(_pkgremove_select_from pacaur pacman) || preview='pacman'
+
+    if (( by_size )); then
+        pkgs=(${(f)$(expac -H M '%m\t%n' | sort -hr \
+            | _pkgremove_fzf +s --preview="$preview --color=always -Si {3}" \
+                -q '!^lib ' "${fzf_args[@]}" | cut -f2)})
+    else
+        pkgs=(${(f)$(expac '%n' \
+            | _pkgremove_fzf +s --preview="$preview --color=always -Si {1}" \
+                -q '!^lib ' "${fzf_args[@]}" | cut -d' ' -f1)})
+    fi
+
+    if (( ${#pkgs} > 0 )); then
+        sudo pacman -Rcusn "${pkgs[@]}"
+    else
+        print -u2 'pare: nothing selected'
+        return 1
+    fi
+}
+
+_pkgremove_err() { printf '\e[31m%s\e[0m\n' "$*" >&2; }
+
+_pkgremove_check() {
+    local c
+    for c; do
+        command -v "$c" &>/dev/null || { _pkgremove_err "$c not found"; return 1; }
+    done
+}
+
+_pkgremove_select_from() {
+    local c
+    for c; do
+        if command -v "${c%% *}" &>/dev/null; then
+            print "$c"
+            return 0
+        fi
+    done
+    return 1
+}
+
+_pkgremove_fzf() {
+    command fzf -e --multi --no-hscroll --inline-info --cycle "$@"
+}
